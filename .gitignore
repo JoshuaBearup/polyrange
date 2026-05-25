@@ -1,0 +1,7 @@
+node_modules/
+manifest.*.json
+.fly/
+.env
+.env.local
+*.log
+.DS_Store
