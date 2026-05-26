@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-architecture-map-4.1.10-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

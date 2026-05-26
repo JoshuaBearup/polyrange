@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-cloud-storage-4.2.11-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

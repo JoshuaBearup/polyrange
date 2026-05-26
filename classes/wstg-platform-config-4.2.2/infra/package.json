@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-platform-config-4.2.2-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

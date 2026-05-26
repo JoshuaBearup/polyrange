@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-app-fingerprint-4.1.9-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

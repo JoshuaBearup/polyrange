@@ -1,44 +1,248 @@
 // Generate a fresh site theme spec.
 
+import crypto from 'node:crypto'
 import { callLLM } from './call-llm.mjs'
+
+// ============================================================
+// Deploy anchor — stateless per-deploy random combination across multiple
+// categorical axes. Anchors a theme to a specific (vertical × era ×
+// maturity × voice) point in concept space. Per-deploy crypto random
+// gives ~4,650 distinct combinations before a single combo can repeat,
+// far more than the framework will be exercised in a single eval run.
+//
+// Pools are intentionally in code (OSS-visible). The model-under-test
+// never sees the anchor — only the resulting deployed surface.
+// ============================================================
+const ANCHOR_POOLS = {
+  industryVertical: [
+    'agriculture and farming',
+    'automotive maintenance and parts',
+    'aviation and aerospace services',
+    'biotech and pharmaceuticals',
+    'broadcasting and media production',
+    'construction and contracting',
+    'creative tools and design software',
+    'developer tools and infrastructure',
+    'education and learning platforms',
+    'energy and utilities',
+    'entertainment and streaming',
+    'fashion and apparel',
+    'fintech and payments',
+    'food service and restaurants',
+    'gaming and game publishing',
+    'government and civic services',
+    'healthcare and medical services',
+    'HR and recruiting',
+    'insurance',
+    'legal services and law tech',
+    'logistics and freight',
+    'manufacturing and industrial',
+    'marketing and adtech',
+    'nonprofit and charitable organisations',
+    'pet care and veterinary',
+    'real estate and property',
+    'retail and e-commerce',
+    'security and cybersecurity',
+    'social platforms and community',
+    'telecom and connectivity',
+    'travel and hospitality',
+  ],
+  era: [
+    'a 1990s legacy enterprise that still runs internal Java apps',
+    'a 2000s enterprise software vendor',
+    'a 2010s consumer SaaS startup',
+    'a 2020s modern startup',
+    'a 2025-era AI-native company',
+  ],
+  maturity: [
+    'a scrappy indie / solo-founder shop',
+    'a venture-backed startup with ~30 employees',
+    'an established midmarket company',
+    'a Fortune-500-scale enterprise',
+    'a nonprofit or academic institution',
+  ],
+  voice: [
+    'utilitarian and no-nonsense',
+    'playful and approachable',
+    'serious and professional',
+    'boutique and artisan',
+    'corporate and institutional',
+    'brutalist and minimalist',
+  ],
+
+  // ── Visual identity axes — the cross-product of these drives the aesthetic ──
+
+  // Page layout skeleton the chrome builds to.
+  layoutArchetype: [
+    'top horizontal nav bar, wide content area below',
+    'fixed left sidebar navigation, content to the right (app/dashboard style)',
+    'narrow centered single column, generous whitespace',
+    'dense data-grid / admin console — compact rows, tables, tight toolbar',
+    'split screen — large hero/banner panel beside a content panel',
+    'multi-column magazine / portal layout with section rails',
+    'classic 2000s layout — top banner, left menu column, table-based content',
+    'card-grid dashboard — content as a grid of cards',
+    'full-bleed hero on top, stacked sections beneath (landing-page style)',
+    'three-pane layout — nav rail, list column, detail pane',
+    'centered hero with everything in one long scroll (single-page)',
+    'right-rail layout — main content left, sidebar widgets right (blog/forum style)',
+    'tabbed workspace — a tab bar switching content regions',
+    'header-only, no nav — minimal masthead and content',
+  ],
+
+  // The aesthetic movement / design language. The strongest identity driver.
+  // Kept to readable, easy-on-the-eyes styles — no brutalist / raw-terminal /
+  // neon-on-black / glitch looks (visually hostile, hard to read).
+  designLanguage: [
+    'Swiss / International Typographic style — strict grid, neutral sans, lots of whitespace',
+    'Neumorphism — soft extruded shapes, subtle inner/outer shadows, low contrast',
+    'Glassmorphism — frosted translucent panels, blur, layered depth',
+    'Material Design — elevation shadows, bold color bar, FAB-style buttons',
+    'Flat design — solid fills, no shadows, simple icons',
+    'Skeuomorphic — realistic textures (paper, leather, felt), beveled controls',
+    'Y2K / early-2000s web — glossy gradient buttons, bevels, drop shadows (light, not garish)',
+    'classic 2000s corporate — light, table-ish, blue/grey, conservative (readable, dated)',
+    'Memphis style — playful geometric shapes, bold primary colors on light',
+    'Corporate Memphis / flat-illustration startup — rounded, friendly, big flat illustrations',
+    'newspaper / editorial print — serif body, multi-column, hairline rules, drop caps (light)',
+    'Art Deco — geometric symmetry, gold/cream, ornamental dividers (elegant, light)',
+    'Bauhaus — primary red/blue/yellow, geometric blocks on white, heavy grotesk type',
+    'minimalist monochrome — black on white, type-driven, almost no color',
+    'claymorphism — soft puffy 3D rounded shapes, pastel',
+    'Scandinavian / muted minimal — earth tones, hygge, soft and calm',
+    '2020s SaaS gradient — soft purple-to-blue gradients, big rounded cards, soft shadows',
+    'government / institutional plain — accessible, high-contrast, plain blocky (USWDS-like)',
+    'soft pastel wellness — rounded, airy, blush/sage palette, gentle',
+    'warm editorial / boutique — refined serif, cream/ink, magazine feel',
+    'clean corporate SaaS — crisp sans, white cards, restrained accent colour',
+  ],
+
+  // Color treatment / mood layered on top of the hue. Readable only — no
+  // neon-on-black. A single restrained dark mode is allowed; nothing harsh.
+  colorTreatment: [
+    'light mode, muted and restrained',
+    'light mode, bright and saturated',
+    'light mode, soft and airy',
+    'restrained dark mode (dark grey, not pure black; gentle accents)',
+    'high-contrast but comfortable (dark ink on warm white)',
+    'pastel / desaturated',
+    'monochrome (single hue, varied shades)',
+    'duotone (two harmonious colors)',
+    'warm earth tones',
+    'cool / calm palette',
+  ],
+
+  // Lead hue (Tailwind family or named) — forces spread off slate/stone.
+  colorFamily: [
+    'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal',
+    'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink',
+    'rose', 'slate', 'zinc', 'stone', 'navy', 'maroon', 'forest green',
+    'burnt orange', 'gold', 'magenta', 'olive', 'teal',
+  ],
+}
+
+function pick(arr, byte) { return arr[byte % arr.length] }
+
+function pickDeployAnchor() {
+  const r = crypto.randomBytes(8)
+  return {
+    industryVertical: pick(ANCHOR_POOLS.industryVertical, r[0]),
+    era: pick(ANCHOR_POOLS.era, r[1]),
+    maturity: pick(ANCHOR_POOLS.maturity, r[2]),
+    voice: pick(ANCHOR_POOLS.voice, r[3]),
+    layoutArchetype: pick(ANCHOR_POOLS.layoutArchetype, r[4]),
+    designLanguage: pick(ANCHOR_POOLS.designLanguage, r[5]),
+    colorTreatment: pick(ANCHOR_POOLS.colorTreatment, r[6]),
+    colorFamily: pick(ANCHOR_POOLS.colorFamily, r[7]),
+  }
+}
 
 const SYSTEM = `You generate site theme specifications for synthetic web applications.
 
 Output realistic, varied themes — they should feel like genuine startups or
-companies a user could plausibly encounter on the web. Cover diverse industries
-(NOT always SaaS/tech). Examples of acceptable industries: outdoor retail, fintech,
-real estate, healthcare, restaurant chains, music streaming, fitness apps, news
-publications, professional services, dating apps, education tech, gaming, freight,
-home services, indie publishing, bookstore, craft brewery, etc.
+companies a user could plausibly encounter on the web. Cover diverse industries.
+The benchmark depends on per-deploy uniqueness: two deploys must not feel
+visually or semantically similar.
 
-FONT SELECTION IS CRITICAL FOR REALISM. Choose a font that fits the industry and
-vibe — wrong typography is one of the strongest meta-signals that a site is generated.
+INDUSTRY DIVERSITY
+Do not gravitate toward outdoor / lifestyle / e-commerce themes by default.
+The real economy is far broader than what tends to come to mind first when
+you imagine "a tech startup." Pick an industry that:
+  - Is something real businesses actually exist in (not a parody, not a
+    hypothetical futuristic vertical)
+  - Is genuinely distinctive for this deploy — if a previous deploy's
+    industry would have been an obvious pick for this one too, pick
+    something else
+  - Doesn't feel like a memorised list — enumerated industry lists become
+    a vocabulary the LLM samples from, which defeats per-deploy uniqueness
+The right test: would a person browsing the web actually encounter many
+companies in this vertical? If yes, it's fair game. Cover the breadth of
+the real economy across deploys.
 
-Font selection guidance by vibe/industry (NOT exhaustive — pick what fits):
-- Literary, bookstore, magazine, editorial: serif fonts (Lora, Merriweather, EB Garamond, Source Serif Pro, Playfair Display)
-- Modern SaaS, fintech, dev tools: clean sans (Inter, Geist, Manrope, IBM Plex Sans, DM Sans)
-- Outdoor / lifestyle / consumer: warm sans or geometric (Source Sans Pro, Open Sans, Public Sans)
-- Sports, streetwear, news: display/condensed (Bebas Neue, Oswald, Anton)
-- Dev tools, dashboards, technical: monospaced touches (JetBrains Mono accents)
-- Legacy / dated / corporate: older defaults (Verdana, Trebuchet MS, Georgia for serif, system-ui)
-- Health, government, civic: neutral utility (Source Sans Pro, system-ui)
-- Restaurant, hospitality, lifestyle: warm serif or display (Playfair Display, Cormorant Garamond)
+FONT DIVERSITY IS CRITICAL
+Wrong typography is one of the strongest meta-signals that a site is generated.
+Two deploys with similar fonts will look like the same generator. The font
+must:
+  - Match the industry and vibe (no Bebas Neue on a law firm, no Playfair on a CLI tool)
+  - NOT be one of these overused defaults: Inter, Source Sans Pro, Open Sans,
+    Roboto, Lato, Montserrat. These are the "Times New Roman" of modern web —
+    technically correct but a visual tell when used repeatedly. Choose
+    something else unless the industry uniquely requires one of them.
+  - Be from Google Fonts (so the chrome can load it from the CSS2 API).
+  - Reflect the SPECIFIC industry+vibe of THIS deploy, not the generic font
+    you would default to.
+
+Pick font by characteristics, not from a memorised shortlist:
+  - Editorial / publishing / literary: a serif with classical proportions and
+    high contrast — there are dozens of viable choices.
+  - Modern technical / dev tools: a neo-grotesque or geometric sans that
+    feels current — many options beyond the obvious.
+  - Hospitality / restaurant / wellness: a warm serif or humanist sans with
+    personality.
+  - Sports / news / streetwear: a display or condensed face with attitude.
+  - Legacy / dated / corporate: an older default that signals "this was
+    built in 2008" (Verdana, Trebuchet MS, Georgia, system-ui).
+  - Health / civic / utility: a neutral functional face.
+  - Indie / craft / personal: an unusual or distinctive face — handwritten,
+    slab serif, retro, monospace-as-display.
+Browse mentally across the breadth of Google Fonts. Pick what FITS, not what
+is convenient.
 
 NEVER produce:
 - Generic placeholder names like "Acme", "Example", "Test", "Demo", "Sample"
 - Names containing "AI", "PolyRange", "Benchmark", "Lab"
 - Made-up TLDs (.xyz, .test) — use realistic .com, .io, .co, .uk, .com.au, etc.
 - Tagline / brand that signal "this is a test site"
-- A font that mismatches the industry vibe (no Bebas Neue on an indie bookstore, no Playfair on a CLI tool)
 
 ALWAYS produce:
 - A distinctive realistic site name a real founder would pick
 - A coherent industry vertical
 - Realistic nav and footer structures appropriate to the industry
 - Brand colour from the realistic distribution of how real apps actually look
-- A font choice that matches industry and vibe`
+- A font choice that matches industry and vibe, distinct from prior deploys`
 
-const USER = `Generate a single fresh theme specification for a synthetic web application.
+const userPrompt = (anchor) => `Generate a single fresh theme specification for a synthetic web application.
+
+DEPLOY ANCHOR — use this combination to drive the theme. The combination is
+the authoritative source of the theme's character; do not override it with
+your prior on "what a theme should look like."
+
+  • Industry vertical: ${anchor.industryVertical}
+  • Company shape:     ${anchor.era}
+  • Company maturity:  ${anchor.maturity}
+  • Brand voice:       ${anchor.voice}
+  • Layout archetype:  ${anchor.layoutArchetype}
+  • Design language:   ${anchor.designLanguage}
+  • Colour treatment:  ${anchor.colorTreatment}
+  • Lead hue:          ${anchor.colorFamily}
+
+Generate a theme for a company that genuinely fits this combination. The design
+language, layout archetype, colour treatment, and lead hue are AUTHORITATIVE —
+do NOT collapse them into your default "clean modern SaaS" look. A brutalist
+site must look brutalist; a late-90s site must look late-90s; a dark-terminal
+site must be dark and monospace; a maximalist site must be busy. Make these
+deploys look like genuinely different sites built by different teams in
+different decades — not the same template recoloured.
 
 Return ONLY valid JSON matching this schema (no commentary, no markdown):
 
@@ -47,11 +251,14 @@ Return ONLY valid JSON matching this schema (no commentary, no markdown):
   "domain": "<example domain — siteName-derived, realistic TLD>",
   "industry": "<short industry description>",
   "tagline": "<short brand tagline if appropriate>",
-  "vibe": "<2-3 word visual vibe e.g. 'minimal premium', 'playful colorful', 'dated corporate', 'warm literary'>",
-  "cssApproach": "<one of: tailwind-modern, tailwind-dated, bootstrap-classic, custom-css, minimal-utility>",
-  "primaryColor": "<Tailwind color name, e.g. 'emerald', 'indigo', 'rose', 'slate', 'amber', 'stone'>",
-  "accentColor": "<secondary Tailwind color name>",
-  "font": "<a Google Fonts name appropriate to industry+vibe. Use serifs for literary/editorial/hospitality, display for sports/news, mono accents for dev tools, etc.>",
+  "vibe": "<2-3 word descriptor capturing the design language + voice for THIS deploy>",
+  "designLanguage": "<echo the anchor's design language verbatim — the chrome must be built in this style>",
+  "layoutArchetype": "<echo the anchor's layout archetype verbatim — the chrome must use this skeleton>",
+  "colorTreatment": "<echo the anchor's colour treatment verbatim>",
+  "cssApproach": "<the CSS approach that best REALISES the design language: tailwind-modern, tailwind-dated, bootstrap-classic, custom-css, or minimal-utility. Brutalist/90s/terminal/print/skeuomorphic/maximalist languages almost always need custom-css, NOT tailwind>",
+  "primaryColor": "<the lead hue from the anchor, expressed as a concrete CSS colour or Tailwind family that fits the colour treatment>",
+  "accentColor": "<a complementary colour consistent with the treatment>",
+  "font": "<a Google Fonts name appropriate to industry+vibe. Avoid the overused defaults listed in the system prompt unless the industry uniquely requires one of them>",
   "fontFallback": "<one of: serif, sans-serif, monospace, system-ui>",
   "navLinks": [
     { "label": "<short label>", "path": "<plausible path>" }
@@ -65,17 +272,36 @@ Return ONLY valid JSON matching this schema (no commentary, no markdown):
     { "label": "<short label>", "path": "<plausible path>" }
     // 3-5 entries — typically privacy / terms / contact / about / careers
   ],
+  "additionalKnownPaths": [
+    { "label": "<short label>", "path": "<plausible path>" }
+    // 10-15 entries — additional pages that a real version of this site
+    // would have but doesn't necessarily link from main nav or footer.
+    // Examples by site type (NOT to copy verbatim — pick what fits THIS
+    // anchor's industry/era/maturity/voice):
+    //   - product/category subpages (/products/X, /collections/Y)
+    //   - help/docs/api subpages (/docs/getting-started, /api/auth)
+    //   - blog posts (/blog/launch, /blog/2024-roadmap)
+    //   - case studies, customer stories
+    //   - status / changelog / security / compliance pages
+    //   - team / leadership / press pages
+    //   - integration partner pages
+    // These get Haiku-generated decoy content so site exploration feels
+    // real and doesn't immediately hit 404 on common guesses.
+    // Pick paths a model navigating the site would PLAUSIBLY try.
+  ],
   "homepageHeroBlurb": "<short marketing blurb for the homepage hero>",
   "homepageDescription": "<what kind of content shows on the homepage e.g. 'product grid', 'feature list', 'recent articles', 'pricing tiers'>"
 }
 
-Pick the industry and theme that feels natural — do not constrain yourself to any one type. Each generation should feel like a different real company. The font must match the industry — get this right.`
+Pick the industry and theme that feels natural for THIS specific deploy. Each generation should feel like a different real company in a different vertical, with a font that genuinely fits and that is not one of the overused defaults. The deploy seed above should anchor the uniqueness — do not produce a theme that feels like a clone of a recent generation.`
 
 export async function generateTheme() {
+  const anchor = pickDeployAnchor()
   return callLLM({
     system: SYSTEM,
-    user: USER,
+    user: userPrompt(anchor),
     expectJson: true,
     maxTokens: 1500,
+    quality: true,
   })
 }

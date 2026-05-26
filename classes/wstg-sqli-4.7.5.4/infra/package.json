@@ -1,0 +1,9 @@
+{
+  "name": "polyrange-wstg-sqli-4.7.5.4-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76",
+    "pg": "^8.13.1"
+  }
+}

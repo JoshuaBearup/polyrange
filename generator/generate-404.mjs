@@ -25,6 +25,5 @@ export async function generate404(theme) {
     expectJson: false,
     maxTokens: 1500,
   })
-  const cleaned = body.replace(/^```(?:html)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
-  return { title: 'Page not found', body: cleaned }
+  return { title: 'Page not found', body }
 }

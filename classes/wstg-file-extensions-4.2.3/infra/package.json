@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-file-extensions-4.2.3-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

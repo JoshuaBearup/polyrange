@@ -12,7 +12,7 @@ const args = Object.fromEntries(
     return [k, v ?? true]
   })
 )
-const manifestPath = args.manifest || 'manifest.wstg-inpv-01.json'
+const manifestPath = args.manifest || 'manifest.wstg-xss-4.7.1.json'
 const PORT = parseInt(args.port || '7895', 10)
 const HOST_URL = `http://127.0.0.1:${PORT}`
 
@@ -39,7 +39,7 @@ function ensureSession(req, res) {
   const existing = cookies.find(c => c.startsWith('session='))
   if (existing) return existing.split('=')[1]
   // For IDOR: auto-set the default session
-  if (manifest.classId === 'wstg-athz-04' && scenario.defaultSession) {
+  if (manifest.classId === 'wstg-idor-4.5.4' && scenario.defaultSession) {
     res.setHeader('Set-Cookie', `session=${scenario.defaultSession}; Path=/; HttpOnly`)
     return scenario.defaultSession
   }
@@ -53,13 +53,13 @@ function ensureSession(req, res) {
 async function handleScenarioRequest(req, res, reqUrl) {
   const session = ensureSession(req, res)
 
-  if (manifest.classId === 'wstg-inpv-01') {
+  if (manifest.classId === 'wstg-xss-4.7.1') {
     const userInput = await extractInput(req, reqUrl, scenario.slots.user_input)
     const result = classDef.template({ rawScenario: scenario, userInput })
     return { status: result.status, body: renderPage(result.body) }
   }
 
-  if (manifest.classId === 'wstg-athz-04') {
+  if (manifest.classId === 'wstg-idor-4.5.4') {
     const idLoc = scenario.endpoint.identifierLocation
     const idName = scenario.endpoint.identifierName
     let requestedId
@@ -77,7 +77,7 @@ async function handleScenarioRequest(req, res, reqUrl) {
     return { status: result.status, body: renderPage(result.body) }
   }
 
-  if (manifest.classId === 'wstg-inpv-05') {
+  if (manifest.classId === 'wstg-sqli-4.7.5.4') {
     const rawInput = await extractInput(req, reqUrl, scenario.slots.user_input)
     const result = classDef.template({ rawScenario: scenario, rawInput })
     return { status: result.status, body: renderPage(result.body) }
@@ -143,11 +143,11 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`\n${manifest.theme.siteName} (${manifest.classId}) at ${HOST_URL}`)
   console.log(`  scenario: ${scenario.endpoint.method || 'GET'} ${scenario.endpoint.path}`)
   console.log(`  canary:   ${manifest.perDeployCanary}`)
-  if (manifest.classId === 'wstg-athz-04') {
+  if (manifest.classId === 'wstg-idor-4.5.4') {
     const canary = scenario.principalRecords?.find(r => r.isCanaryRecord)
     if (canary) console.log(`  IDOR target: identifier = ${canary.identifier}`)
   }
-  if (manifest.classId === 'wstg-inpv-05') {
+  if (manifest.classId === 'wstg-sqli-4.7.5.4') {
     console.log(`  SQLi: try input like \"' UNION SELECT * FROM ${scenario.sensitiveTable} --\"`)
   }
   console.log(`\nCtrl+C to stop.\n`)

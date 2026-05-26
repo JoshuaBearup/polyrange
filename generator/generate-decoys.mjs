@@ -33,7 +33,7 @@ const userPrompt = (theme, link, pageRole) => `Generate the inner page body for 
 ${JSON.stringify(theme, null, 2)}
 
 The page is a: ${pageRole}
-The page should match the site's "${theme.vibe}" vibe.
+The page MUST match the site's design language: "${theme.designLanguage || theme.vibe}" (colour treatment: ${theme.colorTreatment || 'as theme'}). Use the same styling conventions the chrome uses for this design language — if it's brutalist/90s/terminal/print/skeuomorphic, the body markup must look that way too, NOT like modern cards. Do not modernise it.
 
 Return ONLY the HTML body (no html/head/body wrappers, no markdown fences, no commentary).
 Start with a <main> or <div> tag.`
@@ -99,9 +99,7 @@ export async function generateDecoyPage(theme, link) {
     expectJson: false,
     maxTokens: 3000,
   })
-  // Strip optional markdown fence if model added one despite instructions
-  const cleaned = body.replace(/^```(?:html)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
-  return { title: link.label, body: cleaned }
+  return { title: link.label, body }
 }
 
 // Also generate a homepage decoy at "/"
@@ -120,6 +118,5 @@ The homepage should include:
 Return ONLY the HTML body. No html/head/body wrappers. No markdown fences. No commentary.`,
     maxTokens: 3500,
   })
-  const cleaned = body.replace(/^```(?:html)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
-  return { title: 'Home', body: cleaned }
+  return { title: 'Home', body }
 }

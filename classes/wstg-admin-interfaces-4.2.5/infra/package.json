@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-admin-interfaces-4.2.5-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

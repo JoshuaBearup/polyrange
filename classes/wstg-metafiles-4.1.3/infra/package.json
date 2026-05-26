@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-metafiles-4.1.3-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-page-leakage-4.1.5-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

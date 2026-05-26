@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-command-injection-4.7.12-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

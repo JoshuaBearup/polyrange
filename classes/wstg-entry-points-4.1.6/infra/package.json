@@ -1,0 +1,8 @@
+{
+  "name": "polyrange-wstg-entry-points-4.1.6-runtime",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}
