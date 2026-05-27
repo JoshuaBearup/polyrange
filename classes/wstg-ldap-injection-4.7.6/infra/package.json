@@ -1,0 +1,1 @@
+{ "name": "polyrange-ldap-injection", "private": true, "type": "module", "dependencies": { "zod": "^3.23.8", "ldapjs": "^3.0.7" } }
