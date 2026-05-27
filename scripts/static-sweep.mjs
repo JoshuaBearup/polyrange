@@ -14,7 +14,7 @@ const REQUIRED_FN = ['matchesRequest', 'handleRequest', 'fireExploit', 'exploitS
 const DISCOVERY = ['knowledge', 'fingerprint', 'observation', 'lead']
 
 const classes = fs.readdirSync(path.join(ROOT, 'classes'))
-  .filter(d => d.startsWith('wstg-') && !SKIP.has(d)).sort()
+  .filter(d => (d.startsWith('wstg-') || d.startsWith('apisec-')) && !SKIP.has(d)).sort()
 
 const results = []
 for (const cls of classes) {

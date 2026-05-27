@@ -16,8 +16,8 @@ RUN npm install --omit=dev --no-audit --no-fund
 # Copy shared runtime + class behaviour
 COPY runtime/ ./runtime/
 COPY classes/_shared/ ./classes/_shared/
-COPY classes/wstg-mass-assignment-4.7.20/scenario.mjs ./classes/wstg-mass-assignment-4.7.20/scenario.mjs
-COPY classes/wstg-mass-assignment-4.7.20/behaviour.mjs ./classes/wstg-mass-assignment-4.7.20/behaviour.mjs
+COPY classes/apisec-mass-assignment/scenario.mjs ./classes/apisec-mass-assignment/scenario.mjs
+COPY classes/apisec-mass-assignment/behaviour.mjs ./classes/apisec-mass-assignment/behaviour.mjs
 
 # Per-deploy manifest is baked in by the deploy script
 COPY manifest.json ./manifest.json

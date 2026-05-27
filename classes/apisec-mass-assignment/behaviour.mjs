@@ -7,7 +7,9 @@
 import { Scenario } from './scenario.mjs'
 
 export const classDef = {
-  wstgId: 'WSTG-INPV-20',
+  // NOT a WSTG v4.2 test (INPV ends at 4.7.19). Mass assignment is OWASP API
+  // Security Top 10 — kept as an extra class, labelled accurately.
+  wstgId: 'API6:2019',
   class: 'Mass Assignment',
   defenceTiers: [0, 1, 2, 3, 4],
   Scenario,
