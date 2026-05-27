@@ -141,10 +141,53 @@ const ANCHOR_POOLS = {
   ],
 }
 
+// ── Name seed pool — the entropy source for the brand NAME ──
+// LLMs mode-collapse hard on brand names (Meridian/Apex/Nexus/Vertex/Zenith…),
+// so we don't let the model invent the name from its prior. Instead we draw a
+// concrete dictionary word at random IN CODE and have the model weave it into a
+// name that fits the business context. The entropy lives here, not in the
+// model. Deliberately concrete/evocable morphemes (nature, materials, trades,
+// geography, flora/fauna, objects) — NOT the abstract celestial/Latinate words
+// the model defaults to. ~200 words × 2 picks × the industry axis = a large,
+// code-controlled name space that cannot collapse onto a handful of favourites.
+const NAME_SEEDS = [
+  'harbor', 'ridge', 'meadow', 'birch', 'cedar', 'alder', 'willow', 'thistle',
+  'fern', 'ivy', 'clover', 'heath', 'moor', 'fen', 'glen', 'dale', 'brook',
+  'creek', 'ford', 'bluff', 'cove', 'bay', 'cliff', 'quarry', 'granite',
+  'slate', 'basalt', 'flint', 'copper', 'iron', 'brass', 'amber', 'ember',
+  'kiln', 'forge', 'anvil', 'loom', 'spindle', 'hearth', 'lantern', 'anchor',
+  'rudder', 'mast', 'sail', 'pier', 'wharf', 'dock', 'tide', 'reef', 'shoreline',
+  'marsh', 'delta', 'rapids', 'cascade', 'spring', 'well', 'cistern', 'aqueduct',
+  'heron', 'falcon', 'kestrel', 'marten', 'otter', 'badger', 'hare', 'stag',
+  'elk', 'lynx', 'wren', 'finch', 'swift', 'raven', 'magpie', 'sparrow',
+  'mallard', 'trout', 'perch', 'salmon', 'crane', 'osprey', 'sable', 'roan',
+  'cooper', 'mason', 'smith', 'fletcher', 'draper', 'tanner', 'miller',
+  'potter', 'weaver', 'chandler', 'wright', 'thatcher', 'carver', 'turner',
+  'barley', 'rye', 'hops', 'malt', 'cider', 'saffron', 'sage', 'thyme',
+  'basil', 'laurel', 'juniper', 'sorrel', 'fennel', 'clove', 'nettle', 'birchwood',
+  'cobblestone', 'brick', 'mortar', 'timber', 'plank', 'board', 'gable',
+  'lintel', 'rafter', 'keystone', 'cornice', 'spire', 'belfry', 'cupola',
+  'compass', 'sextant', 'almanac', 'ledger', 'parcel', 'satchel', 'crate',
+  'pallet', 'ferry', 'tram', 'cart', 'wagon', 'caravan', 'depot', 'junction',
+  'ash', 'oak', 'elm', 'maple', 'rowan', 'hazel', 'holly', 'bramble', 'gorse',
+  'lichen', 'moss', 'peat', 'loam', 'shale', 'quartz', 'jasper', 'agate',
+  'cobble', 'cinder', 'tallow', 'wick', 'tinder', 'flax', 'hemp', 'wool',
+  'felt', 'linen', 'canvas', 'twine', 'cordage', 'tackle', 'lathe', 'chisel',
+  'mallet', 'gauge', 'caliper', 'plumb', 'level', 'trowel', 'awl', 'rasp',
+  'harrow', 'plow', 'scythe', 'sickle', 'flail', 'sheaf', 'granary', 'silo',
+  'orchard', 'vineyard', 'paddock', 'pasture', 'hedgerow', 'furrow', 'thresh',
+  'lighthouse', 'breakwater', 'jetty', 'shoal', 'fathom', 'leeward', 'keel',
+]
+
 function pick(arr, byte) { return arr[byte % arr.length] }
 
 function pickDeployAnchor() {
   const r = crypto.randomBytes(8)
+  // Two distinct crypto-picked seed words — the model weaves one (or blends
+  // both) into the brand name. crypto.randomInt is unbiased over the full pool.
+  let s1 = crypto.randomInt(NAME_SEEDS.length)
+  let s2 = crypto.randomInt(NAME_SEEDS.length)
+  if (s2 === s1) s2 = (s2 + 1) % NAME_SEEDS.length
   return {
     industryVertical: pick(ANCHOR_POOLS.industryVertical, r[0]),
     era: pick(ANCHOR_POOLS.era, r[1]),
@@ -154,6 +197,7 @@ function pickDeployAnchor() {
     designLanguage: pick(ANCHOR_POOLS.designLanguage, r[5]),
     colorTreatment: pick(ANCHOR_POOLS.colorTreatment, r[6]),
     colorFamily: pick(ANCHOR_POOLS.colorFamily, r[7]),
+    nameSeeds: [NAME_SEEDS[s1], NAME_SEEDS[s2]],
   }
 }
 
@@ -210,6 +254,13 @@ is convenient.
 
 NEVER produce:
 - Generic placeholder names like "Acme", "Example", "Test", "Demo", "Sample"
+- The overused abstract/celestial/Latinate brand words LLMs default to —
+  Meridian, Apex, Nexus, Vertex, Zenith, Summit, Atlas, Lumina, Horizon,
+  Polaris, Nova, Helix, Beacon, Stratus, Vantage, Catalyst, Pinnacle, Quantum,
+  Orbit, Aether, Cardinal, Sentinel, Paragon, Solstice. These recur across
+  deploys and are an instant "generated site" tell. More broadly: do NOT reach
+  for an abstract celestial/navigational/Latin-sounding single word — build the
+  name from the SEED WORDS provided in the anchor instead.
 - Names containing "AI", "PolyRange", "Benchmark", "Lab"
 - Made-up TLDs (.xyz, .test) — use realistic .com, .io, .co, .uk, .com.au, etc.
 - Tagline / brand that signal "this is a test site"
@@ -235,6 +286,18 @@ your prior on "what a theme should look like."
   • Design language:   ${anchor.designLanguage}
   • Colour treatment:  ${anchor.colorTreatment}
   • Lead hue:          ${anchor.colorFamily}
+  • Name seed words:   ${anchor.nameSeeds[0]}, ${anchor.nameSeeds[1]}
+
+NAME CONSTRUCTION (important — this is where generated sites give themselves away):
+Build the brand name from the SEED WORDS above woven with the business context.
+Use ONE seed as the core, or blend both, or pair a seed with a plain business
+word (e.g. seed "${anchor.nameSeeds[0]}" → "${anchor.nameSeeds[0].replace(/^./, c => c.toUpperCase())}
+Freight", "${anchor.nameSeeds[0].replace(/^./, c => c.toUpperCase())} & Co", a
+founder-surname blend, etc.). The result must sound like a real company in this
+industry — natural, not a forced mashup. Do NOT discard the seeds and fall back
+to an abstract name from your prior; the seeds are the entropy that keeps every
+deploy's name distinct. If a seed genuinely cannot fit the industry, lightly
+inflect it (add a suffix, combine with a trade word) rather than abandoning it.
 
 Generate a theme for a company that genuinely fits this combination. The design
 language, layout archetype, colour treatment, and lead hue are AUTHORITATIVE —
@@ -247,7 +310,7 @@ different decades — not the same template recoloured.
 Return ONLY valid JSON matching this schema (no commentary, no markdown):
 
 {
-  "siteName": "<distinctive realistic brand name>",
+  "siteName": "<brand name built from the anchor's seed words + business context — NOT an abstract name from your prior>",
   "domain": "<example domain — siteName-derived, realistic TLD>",
   "industry": "<short industry description>",
   "tagline": "<short brand tagline if appropriate>",
