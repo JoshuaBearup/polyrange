@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**33 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
+**34 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -37,7 +37,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.3.4 Account Enumeration _(fit? differential oracle, awkward flag)_
 - [ ] 4.3.5 Weak/Unenforced Username Policy _(fit? review-only)_
 
-## 4.4 Authentication — 2/10
+## 4.4 Authentication — 3/10
 - [ ] 4.4.1 Creds over Encrypted Channel _(fit? TLS/transport)_
 - [x] 4.4.2 Default Credentials
 - [ ] 4.4.3 Weak Lockout _(fit? rate/timing)_
@@ -46,7 +46,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.4.6 Browser Cache Weaknesses _(fit? needs browser-cache oracle)_
 - [ ] 4.4.7 Weak Password Policy _(fit? review-only)_
 - [ ] 4.4.8 Weak Security Question _(fit? review-only)_
-- [ ] 4.4.9 Weak Password Reset _(buildable — predictable token → reset → canary)_
+- [x] 4.4.9 Weak Password Reset _(broken token↔account binding → reset admin → ATO)_
 - [ ] 4.4.10 Weaker Auth Alt-Channel _(fit? review-only)_
 
 ## 4.5 Authorization — 4/4 ✅ COMPLETE
