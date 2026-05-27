@@ -1,9 +1,0 @@
-{
-  "name": "polyrange-wstg-mass-assignment-4.7.20-runtime",
-  "type": "module",
-  "private": true,
-  "dependencies": {
-    "zod": "^3.25.76",
-    "pg": "^8.13.1"
-  }
-}

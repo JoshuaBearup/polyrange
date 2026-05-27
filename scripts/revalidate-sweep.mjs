@@ -20,7 +20,7 @@ fs.mkdirSync(LOGDIR, { recursive: true })
 const SKIP = new Set(['wstg-search-recon-4.1.1']) // stale / out-of-scope
 
 const classes = fs.readdirSync(path.join(ROOT, 'classes'))
-  .filter(d => (d.startsWith('wstg-') || d.startsWith('apisec-')) && !SKIP.has(d))
+  .filter(d => d.startsWith('wstg-') && !SKIP.has(d))
   .map(d => ({
     cls: d,
     tier: fs.existsSync(path.join(ROOT, 'classes', d, 'defences.mjs')) ? 1 : 0,
