@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**37 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
+**38 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -66,7 +66,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.6.8 Session Puzzling _(buildable but intricate)_
 - [ ] 4.6.9 Session Hijacking _(fit? needs a leak/victim)_
 
-## 4.7 Input Validation — 8/19
+## 4.7 Input Validation — 9/19
 - [x] 4.7.1 Reflected XSS
 - [x] 4.7.2 Stored XSS
 - _→ 4.7.3 HTTP Verb Tampering (merged into 4.2.6 ✅)_
@@ -75,7 +75,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.7.6 LDAP Injection _(sidecar)_
 - [ ] 4.7.7 XML Injection
 - [ ] 4.7.8 SSI Injection _(sidecar)_
-- [ ] 4.7.9 XPath Injection
+- [x] 4.7.9 XPath Injection _(BLIND boolean extraction — char-by-char via substring(), binary auth oracle, real XPath engine)_
 - [ ] 4.7.10 IMAP/SMTP Injection _(sidecar)_
 - [x] 4.7.11 Code Injection — [ ] .1 LFI · [ ] .2 RFI
 - [x] 4.7.12 Command Injection
