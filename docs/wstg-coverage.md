@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**36 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
+**37 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -90,9 +90,9 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 ## 4.8 Error Handling — 1/1 ✅ COMPLETE
 - [x] 4.8.1 Improper Error Handling _(← 4.8.2 Stack Traces merged in)_
 
-## 4.9 Cryptography — 1/4
+## 4.9 Cryptography — 2/4
 - [ ] 4.9.1 Weak TLS _(sidecar — TLS-misconfig container)_
-- [ ] 4.9.2 Padding Oracle _(buildable — real padding-oracle decrypt)_
+- [x] 4.9.2 Padding Oracle _(AES-CBC IV-prepended; padding side-channel → recover intermediate → CBC bit-flip forge admin)_
 - [ ] 4.9.3 Sensitive Info Unencrypted _(OOS — network)_
 - [x] 4.9.4 Weak Encryption _(hardcoded AES key leaked in client JS → forge admin auth cookie)_
 
