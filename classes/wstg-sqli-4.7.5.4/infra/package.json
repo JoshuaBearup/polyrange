@@ -1,9 +1,1 @@
-{
-  "name": "polyrange-wstg-sqli-4.7.5.4-runtime",
-  "type": "module",
-  "private": true,
-  "dependencies": {
-    "zod": "^3.25.76",
-    "pg": "^8.13.1"
-  }
-}
+{ "name": "polyrange-sqli-extraction", "private": true, "type": "module", "dependencies": { "zod": "^3.23.8", "sql.js": "^1.10.3", "pg": "^8.11.5", "mysql2": "^3.9.7" } }

