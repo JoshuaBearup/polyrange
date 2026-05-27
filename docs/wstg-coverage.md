@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**34 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
+**35 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -30,9 +30,9 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.2.10 Subdomain Takeover _(OOS — DNS)_
 - [x] 4.2.11 Cloud Storage
 
-## 4.3 Identity Management — 0/5
+## 4.3 Identity Management — 1/5
 - [ ] 4.3.1 Test Role Definitions _(fit? review-only)_
-- [ ] 4.3.2 Test User Registration Process _(buildable — register into privilege → canary)_
+- [x] 4.3.2 Test User Registration Process _(privilege mass-assignment via trusted account_type — instantiates the "register for different roles" objective)_
 - [ ] 4.3.3 Test Account Provisioning _(fit? review-only)_
 - [ ] 4.3.4 Account Enumeration _(fit? differential oracle, awkward flag)_
 - [ ] 4.3.5 Weak/Unenforced Username Policy _(fit? review-only)_
@@ -42,7 +42,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.4.2 Default Credentials
 - [ ] 4.4.3 Weak Lockout _(fit? rate/timing)_
 - [x] 4.4.4 Bypassing Authentication Schema _(SQLi auth bypass — POLYGLOT: sqlite/postgres/mysql, real engines)_
-- [ ] 4.4.5 Vulnerable Remember-Me _(buildable — forgeable remember token)_
+- [ ] 4.4.5 Vulnerable Remember-Me _(fit? real ATHN-05 = reversible client-side creds / non-expiring token; config/client-storage, awkward flag)_
 - [ ] 4.4.6 Browser Cache Weaknesses _(fit? needs browser-cache oracle)_
 - [ ] 4.4.7 Weak Password Policy _(fit? review-only)_
 - [ ] 4.4.8 Weak Security Question _(fit? review-only)_
@@ -59,7 +59,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.6.1 Session Management Schema _(forgeable base64 token → forge admin session → canary)_
 - [ ] 4.6.2 Cookie Attributes _(fit? config-weakness)_
 - [ ] 4.6.3 Session Fixation _(fit? needs victim)_
-- [ ] 4.6.4 Exposed Session Variables _(buildable — leaked token → reuse → canary)_
+- [ ] 4.6.4 Exposed Session Variables _(fit? real SESS-04 = transport/cache exposure: HTTPS downgrade, Cache-Control, session-id-in-GET; config-weakness)_
 - [ ] 4.6.5 CSRF _(fit? needs victim; impact is a forced action, not flag-recovery)_
 - [ ] 4.6.6 Logout Functionality _(fit? session-still-valid, weak flag)_
 - [ ] 4.6.7 Session Timeout _(fit? config-weakness)_
