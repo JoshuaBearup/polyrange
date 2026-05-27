@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**41 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
+**42 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -71,7 +71,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.7.2 Stored XSS
 - _→ 4.7.3 HTTP Verb Tampering (merged into 4.2.6 ✅)_
 - [x] 4.7.4 HTTP Parameter Pollution
-- [x] 4.7.5 SQL Injection — POLYGLOT extraction class (sqlite/pg/mysql via shared layer + infraVariant; T0 UNION, T1 forces blind boolean). [x] .4 PostgreSQL · [x] .2 MySQL — all 3 engines validated on Fly at T0 AND T1 (blind). · _.1 Oracle / .3 SQL Server / .5 MS Access — hosting impractical_ · [ ] .6 NoSQL _(distinct, Mongo)_ · [ ] .7 ORM · [ ] .8 Client-side
+- [x] 4.7.5 SQL Injection — POLYGLOT extraction class (sqlite/pg/mysql via shared layer + infraVariant; T0 UNION, T1 forces blind boolean). [x] .4 PostgreSQL · [x] .2 MySQL — all 3 engines validated on Fly at T0 AND T1 (blind). · _.1 Oracle / .3 SQL Server / .5 MS Access — hosting impractical_ · [x] .6 NoSQL _(Mongo operator injection via mingo — {$ne:null} bypass)_ · [ ] .7 ORM · [ ] .8 Client-side
 - [x] 4.7.6 LDAP Injection _(auth bypass — real ldapjs filter parse/match; )(|(uid=* always-true OR)_
 - [x] 4.7.7 XML Injection _(XXE file-read — real libxml2 external entity → reads server-side canary file)_
 - [x] 4.7.8 SSI Injection _(real SSI processor; injected <!--#include file--> reads server-side canary fragment; #exec disabled)_
