@@ -76,7 +76,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.7.7 XML Injection _(XXE file-read — real libxml2 external entity → reads server-side canary file)_
 - [x] 4.7.8 SSI Injection _(real SSI processor; injected <!--#include file--> reads server-side canary fragment; #exec disabled)_
 - [x] 4.7.9 XPath Injection _(BLIND boolean extraction — char-by-char via substring(), binary auth oracle, real XPath engine)_
-- [x] 4.7.10 IMAP/SMTP Injection _(CRLF command injection over a real IMAP socket → SELECT+FETCH admin mailbox → canary)_
+- [x] 4.7.10 IMAP/SMTP Injection _(CRLF command injection → SELECT+FETCH admin mailbox → canary; REAL dovecot 2.4 backend (in-process IMAP fallback for local))_
 - [x] 4.7.11 Code Injection — [ ] .1 LFI · [ ] .2 RFI
 - [x] 4.7.12 Command Injection
 - [ ] 4.7.13 Format String _(OOS — C/C++)_

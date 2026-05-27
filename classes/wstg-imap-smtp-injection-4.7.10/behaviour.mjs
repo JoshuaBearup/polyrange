@@ -82,6 +82,27 @@ export function imapViewMessage(port, messageId) {
   })
 }
 
+const DOVECOT_PORT = 143
+function reachable(host, port, timeoutMs = 800) {
+  return new Promise((resolve) => {
+    const s = net.connect(port, host)
+    const done = (ok) => { try { s.destroy() } catch {} ; resolve(ok) }
+    s.on('connect', () => done(true))
+    s.on('error', () => done(false))
+    setTimeout(() => done(false), timeoutMs)
+  })
+}
+// Prefer the real dovecot IMAP server (port 143, started by the container's
+// entrypoint); fall back to the in-process minimal server for local dev/self-test.
+let portPromise = null
+function imapPort(canary, scenario) {
+  if (!portPromise) portPromise = (async () => {
+    if (await reachable('127.0.0.1', DOVECOT_PORT)) return DOVECOT_PORT
+    return (await getImap(canary, scenario)).port
+  })()
+  return portPromise
+}
+
 export const classDef = {
   wstgId: 'WSTG-INPV-10',
   class: 'IMAP/SMTP Injection',
@@ -99,7 +120,7 @@ export const classDef = {
   },
 
   async handleRequest({ reqUrl, scenario, renderPage, manifest }) {
-    const { port } = await getImap(manifest.perDeployCanary, scenario)
+    const port = await imapPort(manifest.perDeployCanary, scenario)
     const id = reqUrl.searchParams.get(scenario.messageParam)
     if (id == null || id === '') return { status: 200, body: renderPage(inboxPage(scenario)) }
     const resp = await imapViewMessage(port, id)
