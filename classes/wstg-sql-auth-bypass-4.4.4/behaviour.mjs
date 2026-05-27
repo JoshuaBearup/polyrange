@@ -14,6 +14,7 @@ function getDb(scenario, canary) {
     const d = await makeDb(scenario.dialect)
     const esc = s => String(s).replace(/'/g, "''")
     const rand = () => crypto.randomBytes(6).toString('hex')
+    await d.run('DROP TABLE IF EXISTS users')
     await d.run('CREATE TABLE users (username TEXT, password TEXT, secret TEXT)')
     await d.run(`INSERT INTO users (username, password, secret) VALUES ('${esc(scenario.adminUsername)}', '${rand()}', '${esc(canary)}')`)
     for (const u of ['support', 'jdoe', 'operations']) {
@@ -31,6 +32,8 @@ export const classDef = {
   Scenario,
   needsSignup: false,
   canaryRuntime: true,
+  // Per-deploy SQL dialect picks the build image (sqlite=node, postgres/mysql=DB server).
+  infraVariant: (s) => s.dialect,
   discoveryMode: 'observation',
   discoveryTargetPath: (s) => s.endpoint.path,
   discoveryStaticOk: (s) =>

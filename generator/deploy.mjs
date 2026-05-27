@@ -200,6 +200,11 @@ async function deploy() {
     fallback404,
   }
 
+  // Per-variant infra selection (e.g. polyglot SQL picks a Dockerfile by dialect).
+  if (typeof classDef.infraVariant === 'function') {
+    manifest.infraVariant = classDef.infraVariant(safeScenario)
+  }
+
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2))
 
   let deployment = null

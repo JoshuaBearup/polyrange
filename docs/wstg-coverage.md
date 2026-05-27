@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**30 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
+**33 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -37,11 +37,11 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.3.4 Account Enumeration _(fit? differential oracle, awkward flag)_
 - [ ] 4.3.5 Weak/Unenforced Username Policy _(fit? review-only)_
 
-## 4.4 Authentication — 0/10
+## 4.4 Authentication — 2/10
 - [ ] 4.4.1 Creds over Encrypted Channel _(fit? TLS/transport)_
-- [ ] 4.4.2 Default Credentials _(BUILDABLE — log in with defaults → admin canary)_
+- [x] 4.4.2 Default Credentials
 - [ ] 4.4.3 Weak Lockout _(fit? rate/timing)_
-- [ ] 4.4.4 Bypassing Authentication Schema _(BUILDABLE — bypass → protected canary)_
+- [x] 4.4.4 Bypassing Authentication Schema _(SQLi auth bypass — POLYGLOT: sqlite/postgres/mysql, real engines)_
 - [ ] 4.4.5 Vulnerable Remember-Me _(buildable — forgeable remember token)_
 - [ ] 4.4.6 Browser Cache Weaknesses _(fit? needs browser-cache oracle)_
 - [ ] 4.4.7 Weak Password Policy _(fit? review-only)_
@@ -55,8 +55,8 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.5.3 Privilege Escalation
 - [x] 4.5.4 Insecure Direct Object References
 
-## 4.6 Session Management — 0/9
-- [ ] 4.6.1 Session Management Schema _(BUILDABLE — predictable/forgeable token → forge → victim canary)_
+## 4.6 Session Management — 1/9
+- [x] 4.6.1 Session Management Schema _(forgeable base64 token → forge admin session → canary)_
 - [ ] 4.6.2 Cookie Attributes _(fit? config-weakness)_
 - [ ] 4.6.3 Session Fixation _(fit? needs victim)_
 - [ ] 4.6.4 Exposed Session Variables _(buildable — leaked token → reuse → canary)_

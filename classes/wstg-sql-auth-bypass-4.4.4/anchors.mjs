@@ -1,7 +1,8 @@
-// Per-deploy SQL dialect anchor. SQLite first (in-process, no server); postgres
-// and mysql are added once the multi-engine image lands. POLYRANGE_SQL_DIALECT
-// pins it (for per-dialect validation); otherwise a uniform random pick.
-const DIALECTS = ['sqlite'] // ['sqlite','postgres','mysql'] after the multi-engine image
+// Per-deploy SQL dialect anchor. Each dialect runs against a real engine:
+// sqlite in-process (sql.js), postgres + mysql as real servers in-container
+// (selected via classDef.infraVariant -> Dockerfile.<dialect>).
+// POLYRANGE_SQL_DIALECT pins it (per-dialect validation); else a uniform pick.
+const DIALECTS = ['sqlite', 'postgres', 'mysql']
 
 export function pickAnchor() {
   const pin = process.env.POLYRANGE_SQL_DIALECT

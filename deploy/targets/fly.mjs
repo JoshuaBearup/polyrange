@@ -25,7 +25,7 @@ function run(cmd, args, opts = {}) {
 // timeouts ("token validation error … context deadline exceeded"). Those are
 // platform-side and clear on retry. Run the deploy captured, and retry on a
 // recognised transient error; surface anything else immediately.
-const FLY_TRANSIENT = /token validation error|context deadline exceeded|smoke checks .*failed|failed to (launch|get) VM|no verified tokens/i
+const FLY_TRANSIENT = /token validation error|context deadline exceeded|smoke checks .*failed|failed to (launch|get) VM|no verified tokens|failed to acquire lease|lease currently held|failed to get lease/i
 async function runWithRetry(cmd, args, opts = {}, attempts = 4) {
   let last
   for (let i = 0; i < attempts; i++) {
@@ -89,6 +89,17 @@ export async function deployFly({ manifest, manifestPath, repoRoot, region = 'sy
   for (const f of await fs.readdir(infraDir)) {
     if (f === 'package.json') continue
     await fs.copyFile(path.join(infraDir, f), path.join(buildDir, f))
+  }
+
+  // Per-variant Dockerfile selection (e.g. polyglot SQL: sqlite/postgres/mysql
+  // each need a different base image). If the class set manifest.infraVariant
+  // and a Dockerfile.<variant> was copied in, use it as the build Dockerfile.
+  if (manifest.infraVariant) {
+    const vf = path.join(buildDir, `Dockerfile.${manifest.infraVariant}`)
+    if (await fs.access(vf).then(() => true).catch(() => false)) {
+      await fs.copyFile(vf, path.join(buildDir, 'Dockerfile'))
+      console.log(`  [infra] using Dockerfile.${manifest.infraVariant}`)
+    }
   }
 
   // Copy runtime + classes + package files
