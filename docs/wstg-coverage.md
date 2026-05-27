@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**43 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
+**44 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -77,7 +77,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.7.8 SSI Injection _(real SSI processor; injected <!--#include file--> reads server-side canary fragment; #exec disabled)_
 - [x] 4.7.9 XPath Injection _(BLIND boolean extraction — char-by-char via substring(), binary auth oracle, real XPath engine)_
 - [x] 4.7.10 IMAP/SMTP Injection _(CRLF command injection → SELECT+FETCH admin mailbox → canary; REAL dovecot 2.4 backend (in-process IMAP fallback for local))_
-- [x] 4.7.11 Code Injection — [ ] .1 LFI · [ ] .2 RFI
+- [x] 4.7.11 Code Injection — [x] .1 LFI _(PHP php://filter base64-exfil of config source — distinct from 4.5.1)_ · [ ] .2 RFI _(needs attacker-hosted public remote file — infeasible in deploy model, like CORS)_
 - [x] 4.7.12 Command Injection
 - [ ] 4.7.13 Format String _(OOS — C/C++)_
 - [ ] 4.7.14 Incubated Vulnerability
