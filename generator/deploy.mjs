@@ -31,7 +31,13 @@ const classId = args.class || 'wstg-xss-4.7.1'
 const target = args.target || 'fly'   // fly | local-docker
 const tier = parseInt(args.tier ?? '0', 10)
 const ephemeral = args.ephemeral === true
-const manifestPath = path.resolve(process.cwd(), `manifest.${classId}.json`)
+// Per-tier suffix on the local manifest filename so parallel deploys of
+// the same class at different tiers do not clobber each other's manifest
+// before the build context is built. Caught 2026-05-28 on logout-4.6.6:
+// running T0 and T1 deploys concurrently let the T1 writeFile overwrite
+// the T0 manifest before the T0 deploy's build context had read it, and
+// the T0 container booted with a T1 config baked in.
+const manifestPath = path.resolve(process.cwd(), `manifest.${classId}.t${tier}.json`)
 const repoRoot = process.cwd()
 
 if (target !== 'fly' && target !== 'local-docker') {
