@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**46 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
+**47 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -96,8 +96,8 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.9.3 Sensitive Info Unencrypted _(OOS — network)_
 - [x] 4.9.4 Weak Encryption _(hardcoded AES key leaked in client JS → forge admin auth cookie)_
 
-## 4.10 Business Logic — 2/9
-- [x] 4.10.1 Data Validation _(price tampering — server trusts client unit_price)_ · [ ] 4.10.2 Forge Requests · [ ] 4.10.3 Integrity Checks · [ ] 4.10.4 Process Timing · [ ] 4.10.5 Function Usage Limits · [ ] 4.10.6 Circumvent Workflows · [ ] 4.10.7 Defenses vs Misuse · [ ] 4.10.8 Upload Unexpected Types · [x] 4.10.9 Upload Malicious Files _(web shell upload → php -S executes → RCE → env canary)_
+## 4.10 Business Logic — 3/9
+- [x] 4.10.1 Data Validation _(price tampering — server trusts client unit_price)_ · [ ] 4.10.2 Forge Requests · [ ] 4.10.3 Integrity Checks · [ ] 4.10.4 Process Timing · [ ] 4.10.5 Function Usage Limits · [x] 4.10.6 Circumvent Workflows _(forge checkout_stage cookie → reach fulfilment without payment)_ · [ ] 4.10.7 Defenses vs Misuse · [ ] 4.10.8 Upload Unexpected Types · [x] 4.10.9 Upload Malicious Files _(web shell upload → php -S executes → RCE → env canary)_
   _(mostly buildable but each needs a bespoke workflow + canary chain)_
 
 ## 4.11 Client-side — 2/13
