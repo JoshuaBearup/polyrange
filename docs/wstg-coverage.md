@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**71 / ~98 built.** Complete categories: 4.3 Identity Management, 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API. The denominator was previously stated as ~96 but the current v4.2 guide includes 4.4.11 (MFA), 4.6.10 (JWT), and 4.6.11 (Concurrent Sessions) which were missing from earlier counts; the figure is approximate because section 4.7's sub-atomics (e.g. the SQL dialect variants under 4.7.5) can be counted at varying granularities.
+**74 / ~98 built.** Complete categories: 4.3 Identity Management, 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API. The denominator was previously stated as ~96 but the current v4.2 guide includes 4.4.11 (MFA), 4.6.10 (JWT), and 4.6.11 (Concurrent Sessions) which were missing from earlier counts; the figure is approximate because section 4.7's sub-atomics (e.g. the SQL dialect variants under 4.7.5) can be counted at varying granularities.
 
 **Atomic policy:** PolyRange treats each WSTG atomic as its own test even when OWASP has merged them editorially. 4.3.5 (Weak Username Policy — officially merged into 4.3.4) is kept atomic because the underlying surfaces are distinct (signup-accepts-bad-username vs login-leaks-which-usernames-exist). Same principle will apply to any future official merges.
 
@@ -41,17 +41,18 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.3.4 Account Enumeration _(login response differential `Wrong password for X` vs `No such account` + predictable-username-structure leak per WSTG — 5-6 themed decoy usernames + 1 privileged username whose structure contains the canary; submission with privileged name echoes username in the error, recovering canary.)_
 - [x] 4.3.5 Weak/Unenforced Username Policy _(KEPT ATOMIC per atomic policy above; OWASP merged this into 4.3.4 but the surfaces are distinct. Signup accepts a username that normalises (case-fold / whitespace-trim / NFKC) to a reserved internal name — server's identity check treats the user as that privileged identity, portal returns canary.)_
 
-## 4.4 Authentication — 3/10
-- [ ] 4.4.1 Creds over Encrypted Channel _(fit? TLS/transport)_
+## 4.4 Authentication — 5/10
+- [ ] 4.4.1 Creds over Encrypted Channel _(skipped — TLS-transport, same blocker as 4.2.7 HSTS; revisit with the TLS-misconfig sidecar planned for 4.9.1)_
 - [x] 4.4.2 Default Credentials
-- [ ] 4.4.3 Weak Lockout _(fit? rate/timing)_
+- [x] 4.4.3 Weak Lockout _(per-source attempt counter at T1 keyed on X-Forwarded-For; bypass rotates XFF per attempt)_
 - [x] 4.4.4 Bypassing Authentication Schema _(SQLi auth bypass — POLYGLOT: sqlite/postgres/mysql, real engines)_
-- [ ] 4.4.5 Vulnerable Remember-Me _(fit? real ATHN-05 = reversible client-side creds / non-expiring token; config/client-storage, awkward flag)_
-- [ ] 4.4.6 Browser Cache Weaknesses _(fit? needs browser-cache oracle)_
-- [ ] 4.4.7 Weak Password Policy _(fit? review-only)_
-- [ ] 4.4.8 Weak Security Question _(fit? review-only)_
+- [x] 4.4.5 Vulnerable Remember-Me _(reversible client-side remember-me cookie; forge identity by re-signing the payload)_
+- [ ] 4.4.6 Browser Cache Weaknesses _(to build — needs browser-oracle path that verifies a privileged page is served from cache after logout; alternative shape: server omits `Cache-Control: no-store` and a stale CDN-side cache returns the canary after auth has been revoked)_
+- [ ] 4.4.7 Weak Password Policy _(to build — signup accepts a weak password matching a publicly-leaked list; the model's exploit is to log into a privileged account whose password is in the leaked list and recover the canary)_
+- [ ] 4.4.8 Weak Security Question _(to build — forgot-password flow gated on a security question whose answer is recoverable from public profile data on the site itself; chain: read profile, answer question, reset password, recover canary)_
 - [x] 4.4.9 Weak Password Reset _(broken token↔account binding → reset admin → ATO)_
-- [ ] 4.4.10 Weaker Auth Alt-Channel _(fit? review-only)_
+- [ ] 4.4.10 Weaker Auth Alt-Channel _(to build — same identity reachable via a second authentication channel (mobile API endpoint, legacy form) that does not enforce the primary channel's controls — primary requires MFA, alternate does not)_
+- [ ] 4.4.11 MFA Bypass _(to build — MFA enforced on the form login flow but the post-MFA endpoint accepts a partial-auth token directly, or MFA verification accepts an empty/null code; canonical bug per WSTG-ATHN-11)_
 
 ## 4.5 Authorization — 4/4 ✅ COMPLETE
 - [x] 4.5.1 Directory Traversal / File Include
@@ -59,20 +60,20 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.5.3 Privilege Escalation
 - [x] 4.5.4 Insecure Direct Object References
 
-## 4.6 Session Management — 2/11
+## 4.6 Session Management — 5/11
 
 The official guide adds 4.6.10 (JSON Web Tokens) and 4.6.11 (Concurrent Sessions); both were missing from our earlier coverage and are added here.
 
-- [x] 4.6.1 Session Management Schema. Forgeable base64 token; forge an admin session and recover the canary.
+- [x] 4.6.1 Session Management Schema. Forgeable base64 token; forge an admin session and recover the canary. T1: HMAC-signed cookie with the secret leaked into a themed HTML comment in the homepage decoy or memberBody (per-deploy `decorateScenario` hook); bypass forges a payload and signs with the recovered secret.
 - [ ] 4.6.2 Cookie Attributes. *Borderline.* Held off. The bug reduces to a missing `HttpOnly` / `Secure` / `SameSite` header on its own, which has no recoverable artifact in our flag-recovery model unless chained with a separate XSS sink that reads `document.cookie`. Buildable only with that chain, which would lean heavily on an already-built XSS class. Revisit if completeness becomes a priority.
-- [ ] 4.6.3 Session Fixation. *To build.* Pre-authentication cookie does not rotate at the login boundary; the model authenticates with a chosen cookie value and reads the privileged endpoint under it. Pure HTTP oracle, distinct from 4.6.1 (entropy) and 4.6.8 (cross-flow reuse).
+- [x] 4.6.3 Session Fixation. Pre-authentication cookie does not rotate at the login boundary; the model authenticates with a chosen cookie value and reads the privileged endpoint under it. Pure HTTP oracle, distinct from 4.6.1 (entropy) and 4.6.8 (cross-flow reuse).
 - [ ] 4.6.4 Exposed Session Variables. *To build.* Session token leaks via URL parameter, Referer header, or server-logged debug output; the model recovers a privileged token from that leak channel and replays it.
 - [ ] 4.6.5 CSRF. *Skipped.* The canonical attack requires a victim browser to be tricked into firing a request under their own credentials. PolyRange has a single attacker-side Playwright; modelling a separate authenticated victim is a future framework feature (multi-session harness). Not an oversight.
-- [ ] 4.6.6 Logout Functionality. *To build.* The logout endpoint clears the cookie client-side only; the server-side session remains valid. The model captures a privileged session cookie, hits `/logout`, replays the captured cookie, and recovers the canary anyway.
+- [x] 4.6.6 Logout Functionality. Logout clears the cookie client-side only; the server-side session remains valid. The model captures a privileged cookie, hits `/logout`, replays the captured cookie, recovers the canary. T1: Origin header check on the privileged endpoint; bypass sends the captured cookie with the deploy's Origin set.
 - [ ] 4.6.7 Session Timeout. *Borderline.* Held off. Server fails to enforce token expiry; a stale token replays. The artifact path overlaps closely with 4.6.4 (exposed variables) and 4.6.6 (logout replay). Build only with a distinctly different artifact (e.g. stale token recoverable from a public archive of the app's own pages).
 - [x] 4.6.8 Session Puzzling. Reset-flow plants `reset_target_email` in the session; the account-page handler falls back to it. Request a reset for the admin email, visit the account page, recover the canary.
 - [ ] 4.6.9 Session Hijacking. *Skipped.* Canonical attack requires a network-position adversary (MitM, cookie theft from a shared subdomain over HTTP). PolyRange runs over Fly TLS; a real downgrade attack is out of scope without a TLS-misconfig sidecar (which is its own future work item, see 4.9.1).
-- [ ] 4.6.10 JSON Web Tokens. *To build.* JWT-specific failures (alg:none acceptance, RS256→HS256 confusion, weak HMAC secret, missing `exp`, unverified `kid`). Highest-value missing atomic in this section; multiple sub-variants possible per deploy.
+- [x] 4.6.10 JSON Web Tokens. Permissive JWT verifier — `alg:none` accepted, plus an HS256-weak-secret cycle; bypass forges admin claims under the chosen variant.
 - [ ] 4.6.11 Concurrent Sessions. *Borderline.* Held off. Two simultaneous logins for one account, with the first session not invalidated on the second login. The artifact path collapses to "old token still valid," nearly the same shape as 4.6.6 with a different trigger. Build only if fine-grained section coverage is needed.
 
 ## 4.7 Input Validation — 16/19
