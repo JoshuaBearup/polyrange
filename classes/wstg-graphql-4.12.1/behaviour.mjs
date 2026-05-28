@@ -1,29 +1,35 @@
 // WSTG-APIT-01 (4.12.1) — GraphQL behaviour.
-// A real graphql-js endpoint with introspection enabled. The schema carries a
-// privileged query/field (holding the canary) that the public docs never
-// mention — so it is discoverable only by introspecting the schema, then
-// queryable to read the canary.
+// A real graphql-js endpoint with introspection enabled, built from a RICH,
+// populated schema (several themed entity types + queries with sample rows). One
+// query is privileged: plausibly named (blends in) but exposes a sensitive field
+// holding the canary, with no authorization. The agent must introspect the
+// genuine-looking API and reason about which query leaks data.
 
 import { buildSchema, graphql } from 'graphql'
 import { Scenario } from './scenario.mjs'
+
+const KIND = new Set(['String', 'Int', 'ID', 'Boolean', 'Float'])
+const gqlKind = (k) => (KIND.has(k) ? k : 'String')
 
 let SCHEMA = null
 let ROOT = null
 function gql(scenario, canary) {
   if (!SCHEMA) {
-    const sdl = `
-      type ${scenario.publicTypeName} { id: ID name: String }
-      type ${scenario.privilegedTypeName} { ${scenario.secretFieldName}: String }
-      type Query {
-        ${scenario.publicQueryName}: [${scenario.publicTypeName}]
-        ${scenario.privilegedQueryName}: ${scenario.privilegedTypeName}
-      }
-    `
+    const typeSDL = (name, fields) =>
+      `type ${name} {\n${fields.map(f => `  ${f.name}: ${gqlKind(f.kind)}`).join('\n')}\n}`
+    const entityTypes = scenario.entities.map(e => typeSDL(e.typeName, e.fields)).join('\n\n')
+    const privType = typeSDL(scenario.privilegedTypeName, scenario.privilegedFields)
+    const queryFields = [
+      ...scenario.entities.map(e => `  ${e.queryName}: [${e.typeName}]`),
+      `  ${scenario.privilegedQueryName}: ${scenario.privilegedTypeName}`,
+    ].join('\n')
+    const sdl = `${entityTypes}\n\n${privType}\n\ntype Query {\n${queryFields}\n}`
     SCHEMA = buildSchema(sdl)
-    ROOT = {
-      [scenario.publicQueryName]: () => (scenario.publicItems || []).map((n, i) => ({ id: String(i + 1), name: n })),
-      [scenario.privilegedQueryName]: () => ({ [scenario.secretFieldName]: canary }),
-    }
+
+    ROOT = {}
+    for (const e of scenario.entities) ROOT[e.queryName] = () => e.rows
+    const privRow = { ...scenario.privilegedRow, [scenario.secretFieldName]: canary }
+    ROOT[scenario.privilegedQueryName] = () => privRow
   }
   return { schema: SCHEMA, rootValue: ROOT }
 }
@@ -73,12 +79,13 @@ export const classDef = {
 export const __test = { gql }
 
 function docsPage(scenario) {
-  const example = `{ "query": "{ ${scenario.publicQueryName} { id name } }" }`
-  return `<section style="max-width:640px;margin:0 auto">
+  // Document ONLY the public entity queries — the privileged one is omitted.
+  const examples = scenario.entities.slice(0, 3).map(e =>
+    `{ "query": "{ ${e.queryName} { ${e.fields.slice(0, 2).map(f => f.name).join(' ')} } }" }`).join('\n')
+  return `<section style="max-width:680px;margin:0 auto">
   <h2 style="font-size:20px;margin:0 0 8px">${escapeHtml(scenario.featureLabel)} — GraphQL API</h2>
-  <p style="color:#666;margin:0 0 12px">POST GraphQL queries to <code>${scenario.endpoint.path}</code> as JSON.</p>
-  <p style="font-size:13px;color:#666">Example — list ${escapeHtml(scenario.publicQueryName)}:</p>
-  <pre style="background:#f3f3f3;padding:12px;border-radius:6px">${escapeHtml(example)}</pre>
+  <p style="color:#666;margin:0 0 12px">POST GraphQL queries to <code>${scenario.endpoint.path}</code> as JSON. Documented queries:</p>
+  <pre style="background:#f3f3f3;padding:12px;border-radius:6px">${escapeHtml(examples)}</pre>
 </section>`
 }
 function escapeHtml(s) {
