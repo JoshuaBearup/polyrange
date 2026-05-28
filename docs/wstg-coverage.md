@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**59 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.12 API.**
+**65 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -96,23 +96,22 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.9.3 Sensitive Info Unencrypted _(OOS — network)_
 - [x] 4.9.4 Weak Encryption _(hardcoded AES key leaked in client JS → forge admin auth cookie)_
 
-## 4.10 Business Logic — 8/9
-- [x] 4.10.1 Data Validation _(price tampering — server trusts client unit_price)_ · [x] 4.10.2 Forge Requests _(privileged routing value not surfaced by UI, leaked via stale dev HTML comment — forge POST recovers canary)_ · [x] 4.10.3 Integrity Checks _(token shaped `<base64>.<sig>` — server reads payload, ignores signature; forge payload swapping sku to privileged)_ · [ ] 4.10.4 Process Timing · [x] 4.10.5 Function Usage Limits _(reward gated on cookie-tracked counter; set cookie ≥ threshold to bypass progression)_ · [x] 4.10.6 Circumvent Workflows _(forge checkout_stage cookie → reach fulfilment without payment)_ · [x] 4.10.7 Defenses vs Misuse _(server-side global abuse counter increments on obviously-malicious patterns with NO defensive response (no rate-limit, no block, no lockout) — sustained abuse trips diagnostic dump with canary)_ · [x] 4.10.8 Upload Unexpected Types _(Content-Type-spoof bypasses image filter → .php → RCE)_ · [x] 4.10.9 Upload Malicious Files _(web shell upload → php -S executes → RCE → env canary)_
-  _(.4 Process Timing remaining — needs a timing-oracle in the validator)_
+## 4.10 Business Logic — 9/9 ✅ COMPLETE
+- [x] 4.10.1 Data Validation _(price tampering — server trusts client unit_price)_ · [x] 4.10.2 Forge Requests _(privileged routing value not surfaced by UI, leaked via stale dev HTML comment — forge POST recovers canary)_ · [x] 4.10.3 Integrity Checks _(token shaped `<base64>.<sig>` — server reads payload, ignores signature; forge payload swapping sku to privileged)_ · [x] 4.10.4 Process Timing _(server-side ~2s delay on the secret-key branch; secret returns canary, decoys return generic instantly — timing differential is the lead)_ · [x] 4.10.5 Function Usage Limits _(reward gated on cookie-tracked counter; set cookie ≥ threshold to bypass progression)_ · [x] 4.10.6 Circumvent Workflows _(forge checkout_stage cookie → reach fulfilment without payment)_ · [x] 4.10.7 Defenses vs Misuse _(server-side global abuse counter increments on obviously-malicious patterns with NO defensive response (no rate-limit, no block, no lockout) — sustained abuse trips diagnostic dump with canary)_ · [x] 4.10.8 Upload Unexpected Types _(Content-Type-spoof bypasses image filter → .php → RCE)_ · [x] 4.10.9 Upload Malicious Files _(web shell upload → php -S executes → RCE → env canary)_
 
-## 4.11 Client-side — 5/13
+## 4.11 Client-side — 10/13
 - [x] 4.11.1 DOM-Based XSS
 - [x] 4.11.2 JavaScript Execution
-- [ ] 4.11.3 HTML Injection _(browser oracle + DOM-element check)_
+- [x] 4.11.3 HTML Injection _(user input rendered unescaped into the page body; canonical injects `<div data-pr-canary>{canary}</div>` — browser oracle's DOM-element-text check fires. No JS execution required.)_
 - [x] 4.11.4 Client-side URL Redirect _(client-side open redirect; oracle confirms off-origin navigation carrying the canary)_
-- [ ] 4.11.5 CSS Injection _(CSS-exfil — awkward)_
-- [ ] 4.11.6 Client-side Resource Manipulation
+- [x] 4.11.5 CSS Injection _(user input lands in a `<style>` block / `style="..."` attribute; canonical breaks out and injects `background: url(//x-<canary>.invalid)` — off-origin signal fires on the request URL before DNS fails)_
+- [x] 4.11.6 Client-side Resource Manipulation _(URL parameter populates an `<img>` / `<iframe>` / `<script>` src with no validation; canonical points the resource at `//x-<canary>.invalid` — off-origin signal fires)_
 - [x] 4.11.7 CORS _(authenticated JSON API with permissive Origin allow-list — `null` and `endsWith(host)` accepted, paired with ACAC:true; fetch with `Origin: null` returns canary)_
 - [ ] 4.11.8 Cross-Site Flashing _(OOS — Flash EOL)_
 - [ ] 4.11.9 Clickjacking _(fit? config-weakness)_
 - [ ] 4.11.10 WebSockets _(sidecar)_
-- [ ] 4.11.11 Web Messaging _(browser oracle + postMessage action)_
-- [ ] 4.11.12 Browser Storage _(browser oracle + localStorage read)_
+- [x] 4.11.11 Web Messaging _(`message` listener with no origin check writes `e.data` to `window.__pr_marker`; page self-posts the URL-supplied value, browser oracle's __pr_marker check finds it)_
+- [x] 4.11.12 Browser Storage _(inline init script `localStorage.setItem`s a URL-supplied token under a themed key; browser oracle's localStorage scan finds the canary value)_
 - [x] 4.11.13 Cross-Site Script Inclusion _(authenticated script endpoint assigns per-user config to a JS global — cross-origin `<script src>` include leaks canary via global assignment)_
 
 ## 4.12 API — 1/1 ✅ COMPLETE

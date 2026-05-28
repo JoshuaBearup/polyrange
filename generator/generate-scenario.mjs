@@ -189,8 +189,17 @@ Generate the scenario. Return ONLY valid JSON matching the schema. No commentary
       continue
     }
     // Generic gate: the canary must appear somewhere in the scenario — UNLESS
-    // it's an injected-canary class (XSS), where the attacker supplies it.
-    if (!canaryInjected && !JSON.stringify(result.data).includes(perDeployCanary)) {
+    // it's an injected-canary class (XSS, HTML injection, …), where the
+    // attacker supplies it at exploit time. For injected-canary classes the
+    // inverse holds: the canary must NOT appear in the scenario JSON, since
+    // the negative-control check will treat any pre-placed canary as a leak.
+    if (canaryInjected) {
+      if (JSON.stringify(result.data).includes(perDeployCanary)) {
+        lastError = `  - canary ${perDeployCanary} APPEARS in the scenario, but this is an injected-canary class. The canary is supplied by the attacker's payload at exploit time and MUST NOT appear anywhere in the scenario (not in URLs, sample paths, body text, attribute values — anywhere). Do not use the canary as example data.`
+        console.log(`  ⚠ canary present but should be attacker-injected (attempt ${attempt + 1})`)
+        continue
+      }
+    } else if (!JSON.stringify(result.data).includes(perDeployCanary)) {
       lastError = `  - canary ${perDeployCanary} is not embedded anywhere in the scenario. Embed it where the schema/constraints say.`
       console.log(`  ⚠ canary missing (attempt ${attempt + 1})`)
       continue
