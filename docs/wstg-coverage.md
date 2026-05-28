@@ -3,14 +3,14 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**74 / ~98 built.** Complete categories: 4.3 Identity Management, 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API. The denominator was previously stated as ~96 but the current v4.2 guide includes 4.4.11 (MFA), 4.6.10 (JWT), and 4.6.11 (Concurrent Sessions) which were missing from earlier counts; the figure is approximate because section 4.7's sub-atomics (e.g. the SQL dialect variants under 4.7.5) can be counted at varying granularities.
+**75 / ~98 built.** Complete categories: 4.3 Identity Management, 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API. The denominator was previously stated as ~96 but the current v4.2 guide includes 4.4.11 (MFA), 4.6.10 (JWT), and 4.6.11 (Concurrent Sessions) which were missing from earlier counts; the figure is approximate because section 4.7's sub-atomics (e.g. the SQL dialect variants under 4.7.5) can be counted at varying granularities.
 
 **Atomic policy:** PolyRange treats each WSTG atomic as its own test even when OWASP has merged them editorially. 4.3.5 (Weak Username Policy — officially merged into 4.3.4) is kept atomic because the underlying surfaces are distinct (signup-accepts-bad-username vs login-leaks-which-usernames-exist). Same principle will apply to any future official merges.
 
 **Skip policy.** Atomics marked *skipped* are not oversights. Each carries a deliberate one-line reason. A competent agent or harness could exploit most of them given the right tooling; what the framework lacks is the supporting infrastructure (a multi-session victim+attacker harness, a TLS-downgrade sidecar, etc.). They are listed explicitly so readers do not assume they were forgotten. *Borderline* means buildable but overlaps another atomic enough that we held off; *fit?* is a legacy label being phased out as the re-audit progresses page-first.
 
-## 4.1 Information Gathering — 9/10
-- [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
+## 4.1 Information Gathering — 10/10 ✅ COMPLETE
+- [x] 4.1.1 Conduct Search Engine Discovery _(three SERP-style portals — WebSearch / PageFind / DuckIndex — co-hosted on the deploy; in-memory corpus of 40-120 themed news docs + 1 leaked entry whose URL points at an unlinked-but-still-served path on the deploy. Per-deploy random which 1-2 of 3 engines index the leak. T0: bare keywords surface the leak. T1: the corpus suppresses the leak unless the query carries a dork operator (site:/inurl:/intitle:/intext:/filetype:) or exact phrase — bypass uses a configured discoveryDork.)_
 - [x] 4.1.2 Fingerprint Web Server
 - [x] 4.1.3 Review Webserver Metafiles
 - [x] 4.1.4 Enumerate Applications on Webserver
