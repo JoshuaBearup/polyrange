@@ -34,7 +34,7 @@ export async function closeBrowserOracle() {
 // Load `url` in a fresh page and report whether a script executed and surfaced
 // `canary`. `setupRequest` (optional) runs before navigation — used by stored
 // XSS to POST the payload first (the view page then renders it).
-export async function runBrowserOracle({ url, canary, waitMs = 1200, navTimeoutMs = 12000 }) {
+export async function runBrowserOracle({ url, canary, origin, waitMs = 1200, navTimeoutMs = 12000 }) {
   const browser = await getBrowser()
   const context = await browser.newContext()
   const page = await context.newPage()
@@ -43,12 +43,27 @@ export async function runBrowserOracle({ url, canary, waitMs = 1200, navTimeoutM
     try { if (String(d.message()).includes(canary)) dialogHit = true } catch {}
     try { await d.dismiss() } catch {}
   })
+  // Off-origin exfil signal: a client-side redirect (open redirect) or a
+  // manipulated resource that sends the canary to a URL OFF the target origin.
+  // We require off-origin so the initial page URL (which legitimately carries
+  // the payload in a param) never counts — only an actual cross-origin
+  // navigation/request triggered by the client-side action does.
+  const baseOrigin = origin || (() => { try { return new URL(url).origin } catch { return '' } })()
+  let offOriginHit = false
+  const checkOffOrigin = (u) => {
+    try {
+      if (!u || !baseOrigin) return
+      if (!u.startsWith(baseOrigin) && String(u).includes(canary)) offOriginHit = true
+    } catch {}
+  }
+  page.on('request', (r) => checkOffOrigin(r.url()))
+  page.on('framenavigated', (f) => checkOffOrigin(f.url()))
   // Swallow page errors (a broken payload throwing is just a non-execution).
   page.on('pageerror', () => {})
   try {
     const resp = await page.goto(url, { waitUntil: 'load', timeout: navTimeoutMs }).catch(() => null)
     await page.waitForTimeout(waitMs)
-    let executed = dialogHit
+    let executed = dialogHit || offOriginHit
     if (!executed) {
       const title = await page.title().catch(() => '')
       if (String(title).includes(canary)) executed = true

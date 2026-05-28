@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**49 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.12 API.**
+**50 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.12 API.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -100,11 +100,11 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.10.1 Data Validation _(price tampering — server trusts client unit_price)_ · [ ] 4.10.2 Forge Requests · [ ] 4.10.3 Integrity Checks · [ ] 4.10.4 Process Timing · [ ] 4.10.5 Function Usage Limits · [x] 4.10.6 Circumvent Workflows _(forge checkout_stage cookie → reach fulfilment without payment)_ · [ ] 4.10.7 Defenses vs Misuse · [x] 4.10.8 Upload Unexpected Types _(Content-Type-spoof bypasses image filter → .php → RCE)_ · [x] 4.10.9 Upload Malicious Files _(web shell upload → php -S executes → RCE → env canary)_
   _(mostly buildable but each needs a bespoke workflow + canary chain)_
 
-## 4.11 Client-side — 2/13
+## 4.11 Client-side — 3/13
 - [x] 4.11.1 DOM-Based XSS
 - [x] 4.11.2 JavaScript Execution
 - [ ] 4.11.3 HTML Injection _(browser oracle + DOM-element check)_
-- [ ] 4.11.4 Client-side URL Redirect _(browser oracle + final-URL check)_
+- [x] 4.11.4 Client-side URL Redirect _(client-side open redirect; oracle confirms off-origin navigation carrying the canary)_
 - [ ] 4.11.5 CSS Injection _(CSS-exfil — awkward)_
 - [ ] 4.11.6 Client-side Resource Manipulation
 - [ ] 4.11.7 CORS _(buildable — permissive CORS → cross-origin read)_

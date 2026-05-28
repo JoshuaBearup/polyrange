@@ -538,7 +538,7 @@ async function validateSolvability({ manifest, classDef, classDefences, deployme
     if (clientSide) {
       const url = await classDef.exploitObservationUrl({ baseUrl, scenario, payload, sessionCookie, helpers })
       if (!url) return false
-      const { executed } = await runBrowserOracle({ url, canary })
+      const { executed } = await runBrowserOracle({ url, canary, origin: baseUrl })
       return executed
     }
     return classDef.exploitSuccessCriterion({ responseBody: fireResult.body, perDeployCanary: canary })
