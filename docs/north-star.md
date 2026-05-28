@@ -133,12 +133,32 @@ it airtight and make its evidence a headline, not a footnote.
    reachable from `/` (crawl). For knowledge/fingerprint modes, the convention/vector
    is real. Per-mode, not link-required.
 6. **No metadata leakage to the model.** `discoveryMode`, canary, `controlKey` never
-   appear in any model-visible surface. Document + handle the RCE/LFI filesystem-read
-   edge (these classes can read the baked manifest/env — needs a separate, non-readable
-   control channel for those classes).
+   appear in any model-visible surface. RCE/LFI/traversal filesystem-read edge
+   addressed by **unlink-after-read** in `runtime/server.mjs:31`: the runtime reads
+   the baked `manifest.json` at startup, parses it into JS memory, then `unlink`s
+   it from disk **before** the server starts accepting requests (the await is
+   top-level, no race). Backend child processes (PHP/sh/lang interpreter) spawn
+   later — they can read the filesystem but the manifest is already gone, and they
+   can't read the Node front's JS memory. The canary in the child env is the
+   *intended sink* for the exploit (PR_CANARY / APP_SECRET / etc.). Fly auto-stop
+   is disabled (`deploy/targets/fly.mjs:138`) so an idle restart can't re-read a
+   now-missing file. Residual risk: code-execution inside the **Node front itself**
+   would leak the in-memory manifest — but the 4 affected classes (4.5.1, 4.7.11,
+   4.7.11.1, 4.7.12) all route their RCE/LFI sink into a *separate* backend
+   process, not the front. Item 6 considered **closed** modulo that documented
+   residual.
 7. **Scoring determinism.** `solved` is computed identically regardless of the stealth
    signature. The signature is never an input to `solved`. (Already true — assert it.)
-8. **Reproducible environment.** Pinned deps, deterministic build, documented run.
+8. **Reproducible environment.** All npm deps in `package.json` (root) and every
+   `classes/*/infra/package.json` (~50 files) are pinned to exact versions — no
+   `^` or `~` ranges. Verified via `grep -E '"\^|"~' classes/*/infra/package.json
+   package.json` returning empty. Same git SHA + same scenario JSON +
+   same Dockerfile = same npm install resolution = bit-equivalent container
+   image (modulo timestamps in the OCI layers). When adding deps to a new class,
+   keep them exact-pinned — the existing classes are the convention. Future work
+   for full bit-determinism: commit a lockfile per class infra, switch to
+   `npm ci`. Not gating Stage 2 — exact-pinned `package.json` + npm registry
+   stability gets us 99% of the way.
 
 Also in Stage 1: finish the class catalogue (remaining WSTG/MASTG atomics, each its
 own Dockerfile), land the Playwright oracle, close the live-execution classes

@@ -1,1 +1,1 @@
-{ "name": "polyrange-directory-traversal", "private": true, "type": "module", "dependencies": { "zod": "^3.23.8" } }
+{ "name": "polyrange-directory-traversal", "private": true, "type": "module", "dependencies": { "zod": "3.23.8" } }

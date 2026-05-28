@@ -1,1 +1,1 @@
-{ "name": "polyrange-xxe", "private": true, "type": "module", "dependencies": { "zod": "^3.23.8", "libxmljs2": "^0.33.0" } }
+{ "name": "polyrange-xxe", "private": true, "type": "module", "dependencies": { "zod": "3.23.8", "libxmljs2": "0.33.0" } }

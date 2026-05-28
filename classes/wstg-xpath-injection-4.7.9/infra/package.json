@@ -1,1 +1,1 @@
-{ "name": "polyrange-xpath-injection", "private": true, "type": "module", "dependencies": { "zod": "^3.23.8", "xpath": "^0.0.34", "@xmldom/xmldom": "^0.8.10" } }
+{ "name": "polyrange-xpath-injection", "private": true, "type": "module", "dependencies": { "zod": "3.23.8", "xpath": "0.0.34", "@xmldom/xmldom": "0.8.10" } }
