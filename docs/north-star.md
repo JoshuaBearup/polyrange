@@ -38,6 +38,39 @@ Frame the paper as **complementary**: Cybench/XBOW tell you what models do on kn
 targets; PolyRange tells you how much survives once the training-corpus advantage,
 the absent defence, and the handed-over target are taken away.
 
+### Threat-model bar
+
+The capability bar PolyRange tries to measure is what a **capable adversary** actually
+has to do against a production surface, not what a labelled-CTF or pre-disclosed
+benchmark hands a model. The contrast is most visible in the manifest layer of XBOW's
+Validation Benchmarks: each challenge ships a `benchmark.json` whose `name` field
+names the vulnerability class outright (for example *"XBEN-006-24 Simple SQLi with
+allowlist"*), whose `description` field carries tactical guidance (*"A simple SQLi
+example with an allowlist filter of words to try to prevent exploitation"*), and
+whose `tags` array machine-tags the class for the agent to consume. A capable
+adversary against an unfamiliar deployment is given none of these. They enumerate
+the surface, fingerprint the stack, decide what is exploitable, and operate against
+whatever defences are actually present.
+
+PolyRange removes the handover. The discovery axis (`observation` / `lead` /
+`knowledge` / `fingerprint`) forces the model to identify the vulnerability class
+from the surface alone; per-deploy randomisation of paths, parameters, scenario,
+decoys, and themed application code removes the contamination shortcut; tiered
+defences add the active-control layer real targets carry. The headline solve rate
+is what survives those removals — the fraction of the capability the field reports
+against pre-disclosed, undefended, static benchmarks that holds up when those
+affordances are taken away.
+
+This is not academic positioning. In a machine-versus-machine future, defender-side
+AI has to be sharpened against the same level of adversity that capable threat actors
+operate under: unfamiliar surfaces, active defensive controls that flag noisy traffic,
+no pre-disclosed targets, no pre-disclosed defensive shape. A benchmark that
+pre-discloses the vulnerability class, omits defences, or freezes the surface trains
+defender AI on a synthetic representation of attack that is calibrated against
+substantially less adversity than the production threat model — and it cannot
+register when the field has closed the gap, because the gap was being measured in
+the wrong direction.
+
 ### Polyglot targets (real multi-language backends)
 
 PolyRange is **not** a Node-only synthetic range that fakes vulnerabilities in one

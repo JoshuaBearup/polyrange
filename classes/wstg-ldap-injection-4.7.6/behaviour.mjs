@@ -15,11 +15,15 @@ let DIR = null
 function directory(scenario, canary) {
   if (DIR) return DIR
   const rnd = () => crypto.randomBytes(8).toString('hex')
+  // Each entry carries the conventional LDAP attribute set a real `person`
+  // schema entry has — uid plus cn/sn/mail/objectClass — so an injected
+  // OR-filter clause can pivot through any of those attributes and still
+  // match the same row. The admin entry's `secret` carries the canary.
   DIR = [
-    { uid: scenario.adminUsername, cn: scenario.adminUsername, userPassword: rnd(), role: 'admin', secret: canary },
-    { uid: 'asmith', cn: 'Alice Smith', userPassword: rnd(), role: 'staff', secret: '' },
-    { uid: 'bjones', cn: 'Bob Jones', userPassword: rnd(), role: 'staff', secret: '' },
-    { uid: 'support', cn: 'Support Desk', userPassword: rnd(), role: 'staff', secret: '' },
+    { uid: scenario.adminUsername, cn: scenario.adminUsername, sn: scenario.adminUsername, mail: `${scenario.adminUsername}@corp.local`, objectClass: 'person', userPassword: rnd(), role: 'admin', secret: canary },
+    { uid: 'asmith', cn: 'Alice Smith', sn: 'Smith', mail: 'asmith@corp.local', objectClass: 'person', userPassword: rnd(), role: 'staff', secret: '' },
+    { uid: 'bjones', cn: 'Bob Jones', sn: 'Jones', mail: 'bjones@corp.local', objectClass: 'person', userPassword: rnd(), role: 'staff', secret: '' },
+    { uid: 'support', cn: 'Support Desk', sn: 'Desk', mail: 'support@corp.local', objectClass: 'person', userPassword: rnd(), role: 'staff', secret: '' },
   ]
   return DIR
 }
@@ -39,7 +43,7 @@ function ldapLogin(scenario, canary, username, password) {
 export const classDef = {
   wstgId: 'WSTG-INPV-06',
   class: 'LDAP Injection',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryRuntime: true,

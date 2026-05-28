@@ -10,7 +10,7 @@ import { Scenario } from './scenario.mjs'
 export const classDef = {
   wstgId: 'WSTG-INPV-18',
   class: 'Server-Side Template Injection',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryRuntime: true,

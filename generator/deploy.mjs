@@ -208,7 +208,23 @@ async function deploy() {
   // the deploy's own domain and are left untouched. Per-deploy salt makes any
   // rewritten domain unregisterable.
   const urlSalt = crypto.randomBytes(4).toString('hex')
-  const safeScenario = sanitizeDeep(scenario, urlSalt)
+  let safeScenario = sanitizeDeep(scenario, urlSalt)
+
+  // Class-specific T1 decorations: a class may need to inject tier-1-only
+  // content into the scenario itself (e.g. a leaked-secret HTML comment in
+  // memberBody) or into the decoys (e.g. a leaked-secret comment on the
+  // homepage). The hook is a no-op at T0. Applied AFTER URL sanitization so
+  // the secret doesn't get treated as a domain candidate.
+  let decoratedDecoys = decoys
+  if (tier > 0) {
+    const fauxManifest = { defenceTier: tier, perDeployCanary }
+    if (typeof classDef.decorateScenario === 'function') {
+      safeScenario = classDef.decorateScenario(safeScenario, fauxManifest)
+    }
+    if (typeof classDef.decorateDecoys === 'function') {
+      decoratedDecoys = classDef.decorateDecoys(decoratedDecoys, safeScenario, fauxManifest)
+    }
+  }
 
   const manifest = {
     polyrangeVersion: '0.7.0-url-safe',
@@ -225,7 +241,7 @@ async function deploy() {
     theme,
     chrome,
     scenario: safeScenario,
-    decoys,
+    decoys: decoratedDecoys,
     fallback404,
   }
 

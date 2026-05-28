@@ -9,7 +9,7 @@ import { Scenario } from './scenario.mjs'
 export const classDef = {
   wstgId: 'WSTG-CLNT-04',
   class: 'Client-side URL Redirect (open redirect)',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryInjected: true,          // attacker supplies the canary in the redirect target

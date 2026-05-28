@@ -15,7 +15,7 @@ function escAttr(s) {
 export const classDef = {
   wstgId: 'WSTG-CLNT-06',
   class: 'Client-side Resource Manipulation',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryInjected: true,

