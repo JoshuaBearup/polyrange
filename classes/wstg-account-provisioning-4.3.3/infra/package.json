@@ -1,0 +1,9 @@
+{
+  "name": "polyrange-account-provisioning",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "zod": "3.25.76",
+    "pg": "8.13.1"
+  }
+}

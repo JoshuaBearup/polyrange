@@ -3,7 +3,9 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**66 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API.**
+**69 / ~96 built. Complete categories: 4.3 Identity Management, 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API.**
+
+**Atomic policy:** PolyRange treats each WSTG atomic as its own test even when OWASP has merged them editorially. 4.3.5 (Weak Username Policy — officially merged into 4.3.4) is kept atomic because the underlying surfaces are distinct (signup-accepts-bad-username vs login-leaks-which-usernames-exist). Same principle will apply to any future official merges.
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -30,12 +32,12 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.2.10 Subdomain Takeover _(OOS — DNS)_
 - [x] 4.2.11 Cloud Storage
 
-## 4.3 Identity Management — 2/5
+## 4.3 Identity Management — 5/5 ✅ COMPLETE
 - [x] 4.3.1 Test Role Definitions _(role's permission DEFINITION is too broad — Twitter-2020-shape. Multi-tier signup with 4 themed roles (per-deploy theme-coherent), one role over-permitted to a sensitive dataset where canary lives. Distinct from 4.5.2/4.5.3 — auth check is enforced; the GRANT TABLE is wrong.)_
 - [x] 4.3.2 Test User Registration Process _(privilege mass-assignment via trusted account_type — instantiates the "register for different roles" objective)_
-- [ ] 4.3.3 Test Account Provisioning _(fit? review-only)_
-- [ ] 4.3.4 Account Enumeration _(fit? differential oracle, awkward flag)_
-- [ ] 4.3.5 Weak/Unenforced Username Policy _(fit? review-only)_
+- [x] 4.3.3 Test Account Provisioning Process _(/invite endpoint accepts role field from any authed user with no caller-privilege check — customer invites themself as admin → /admin/data → canary. Distinct from 4.5.2 (auth works) and 4.3.1 (roles correctly scoped) — the bug is the provisioning function trusting too much, exact WSTG-IDNT-03 framing.)_
+- [x] 4.3.4 Account Enumeration _(login response differential `Wrong password for X` vs `No such account` + predictable-username-structure leak per WSTG — 5-6 themed decoy usernames + 1 privileged username whose structure contains the canary; submission with privileged name echoes username in the error, recovering canary.)_
+- [x] 4.3.5 Weak/Unenforced Username Policy _(KEPT ATOMIC per atomic policy above; OWASP merged this into 4.3.4 but the surfaces are distinct. Signup accepts a username that normalises (case-fold / whitespace-trim / NFKC) to a reserved internal name — server's identity check treats the user as that privileged identity, portal returns canary.)_
 
 ## 4.4 Authentication — 3/10
 - [ ] 4.4.1 Creds over Encrypted Channel _(fit? TLS/transport)_
