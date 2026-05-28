@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**50 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.12 API.**
+**59 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.12 API.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -55,7 +55,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.5.3 Privilege Escalation
 - [x] 4.5.4 Insecure Direct Object References
 
-## 4.6 Session Management — 1/9
+## 4.6 Session Management — 2/9
 - [x] 4.6.1 Session Management Schema _(forgeable base64 token → forge admin session → canary)_
 - [ ] 4.6.2 Cookie Attributes _(fit? config-weakness)_
 - [ ] 4.6.3 Session Fixation _(fit? needs victim)_
@@ -63,15 +63,15 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.6.5 CSRF _(fit? needs victim; impact is a forced action, not flag-recovery)_
 - [ ] 4.6.6 Logout Functionality _(fit? session-still-valid, weak flag)_
 - [ ] 4.6.7 Session Timeout _(fit? config-weakness)_
-- [ ] 4.6.8 Session Puzzling _(buildable but intricate)_
+- [x] 4.6.8 Session Puzzling _(reset-flow plants `reset_target_email` session var; account-page handler falls back to it — request a reset for admin email, then visit account → admin's data + canary)_
 - [ ] 4.6.9 Session Hijacking _(fit? needs a leak/victim)_
 
-## 4.7 Input Validation — 13/19
+## 4.7 Input Validation — 16/19
 - [x] 4.7.1 Reflected XSS
 - [x] 4.7.2 Stored XSS
 - _→ 4.7.3 HTTP Verb Tampering (merged into 4.2.6 ✅)_
 - [x] 4.7.4 HTTP Parameter Pollution
-- [x] 4.7.5 SQL Injection — POLYGLOT extraction class (sqlite/pg/mysql via shared layer + infraVariant; T0 UNION, T1 forces blind boolean). [x] .4 PostgreSQL · [x] .2 MySQL — all 3 engines validated on Fly at T0 AND T1 (blind). · _.1 Oracle / .3 SQL Server / .5 MS Access — hosting impractical_ · [x] .6 NoSQL _(Mongo operator injection via mingo — {$ne:null} bypass)_ · [ ] .7 ORM · [ ] .8 Client-side
+- [x] 4.7.5 SQL Injection — POLYGLOT extraction class (sqlite/pg/mysql via shared layer + infraVariant; T0 UNION, T1 forces blind boolean). [x] .4 PostgreSQL · [x] .2 MySQL — all 3 engines validated on Fly at T0 AND T1 (blind). · _.1 Oracle / .3 SQL Server / .5 MS Access — hosting impractical_ · [x] .6 NoSQL _(Mongo operator injection via mingo — {$ne:null} bypass)_ · [x] .7 ORM _(Sequelize operator-DSL injection via JSON-parsed where; permissive `$ne`/`$gt`/etc. alias map → enumerate via `{"id":{"$gt":0}}` — payload is JSON, not SQL, so vanilla SQLi reasoning won't solve)_ · [ ] .8 Client-side
 - [x] 4.7.6 LDAP Injection _(auth bypass — real ldapjs filter parse/match; )(|(uid=* always-true OR)_
 - [x] 4.7.7 XML Injection _(XXE file-read — real libxml2 external entity → reads server-side canary file)_
 - [x] 4.7.8 SSI Injection _(real SSI processor; injected <!--#include file--> reads server-side canary fragment; #exec disabled)_
@@ -80,9 +80,9 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.7.11 Code Injection — [x] .1 LFI _(PHP php://filter base64-exfil of config source — distinct from 4.5.1)_ · [ ] .2 RFI _(needs attacker-hosted public remote file — infeasible in deploy model, like CORS)_
 - [x] 4.7.12 Command Injection
 - [ ] 4.7.13 Format String _(OOS — C/C++)_
-- [ ] 4.7.14 Incubated Vulnerability
+- [x] 4.7.14 Incubated Vulnerability _(two-step persist→trigger; privileged category in stored report triggers auto-admin-reply on the view page → canary)_
 - [ ] 4.7.15 HTTP Splitting/Smuggling _(needs raw-socket/proxy)_
-- [ ] 4.7.16 HTTP Incoming Requests
+- [ ] 4.7.16 HTTP Incoming Requests _(fit? — actual WSTG-INPV-16 is about monitoring background outgoing HTTP traffic the app fires; no oracle for that in our deploy model. Verb-tampering interpretation already covered by 4.2.6.)_
 - [ ] 4.7.17 Host Header Injection _(Fly edge may strip Host)_
 - [x] 4.7.18 Server-Side Template Injection
 - [x] 4.7.19 Server-Side Request Forgery
@@ -96,24 +96,24 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.9.3 Sensitive Info Unencrypted _(OOS — network)_
 - [x] 4.9.4 Weak Encryption _(hardcoded AES key leaked in client JS → forge admin auth cookie)_
 
-## 4.10 Business Logic — 4/9
-- [x] 4.10.1 Data Validation _(price tampering — server trusts client unit_price)_ · [ ] 4.10.2 Forge Requests · [ ] 4.10.3 Integrity Checks · [ ] 4.10.4 Process Timing · [ ] 4.10.5 Function Usage Limits · [x] 4.10.6 Circumvent Workflows _(forge checkout_stage cookie → reach fulfilment without payment)_ · [ ] 4.10.7 Defenses vs Misuse · [x] 4.10.8 Upload Unexpected Types _(Content-Type-spoof bypasses image filter → .php → RCE)_ · [x] 4.10.9 Upload Malicious Files _(web shell upload → php -S executes → RCE → env canary)_
-  _(mostly buildable but each needs a bespoke workflow + canary chain)_
+## 4.10 Business Logic — 8/9
+- [x] 4.10.1 Data Validation _(price tampering — server trusts client unit_price)_ · [x] 4.10.2 Forge Requests _(privileged routing value not surfaced by UI, leaked via stale dev HTML comment — forge POST recovers canary)_ · [x] 4.10.3 Integrity Checks _(token shaped `<base64>.<sig>` — server reads payload, ignores signature; forge payload swapping sku to privileged)_ · [ ] 4.10.4 Process Timing · [x] 4.10.5 Function Usage Limits _(reward gated on cookie-tracked counter; set cookie ≥ threshold to bypass progression)_ · [x] 4.10.6 Circumvent Workflows _(forge checkout_stage cookie → reach fulfilment without payment)_ · [x] 4.10.7 Defenses vs Misuse _(server-side global abuse counter increments on obviously-malicious patterns with NO defensive response (no rate-limit, no block, no lockout) — sustained abuse trips diagnostic dump with canary)_ · [x] 4.10.8 Upload Unexpected Types _(Content-Type-spoof bypasses image filter → .php → RCE)_ · [x] 4.10.9 Upload Malicious Files _(web shell upload → php -S executes → RCE → env canary)_
+  _(.4 Process Timing remaining — needs a timing-oracle in the validator)_
 
-## 4.11 Client-side — 3/13
+## 4.11 Client-side — 5/13
 - [x] 4.11.1 DOM-Based XSS
 - [x] 4.11.2 JavaScript Execution
 - [ ] 4.11.3 HTML Injection _(browser oracle + DOM-element check)_
 - [x] 4.11.4 Client-side URL Redirect _(client-side open redirect; oracle confirms off-origin navigation carrying the canary)_
 - [ ] 4.11.5 CSS Injection _(CSS-exfil — awkward)_
 - [ ] 4.11.6 Client-side Resource Manipulation
-- [ ] 4.11.7 CORS _(buildable — permissive CORS → cross-origin read)_
+- [x] 4.11.7 CORS _(authenticated JSON API with permissive Origin allow-list — `null` and `endsWith(host)` accepted, paired with ACAC:true; fetch with `Origin: null` returns canary)_
 - [ ] 4.11.8 Cross-Site Flashing _(OOS — Flash EOL)_
 - [ ] 4.11.9 Clickjacking _(fit? config-weakness)_
 - [ ] 4.11.10 WebSockets _(sidecar)_
 - [ ] 4.11.11 Web Messaging _(browser oracle + postMessage action)_
 - [ ] 4.11.12 Browser Storage _(browser oracle + localStorage read)_
-- [ ] 4.11.13 Cross-Site Script Inclusion
+- [x] 4.11.13 Cross-Site Script Inclusion _(authenticated script endpoint assigns per-user config to a JS global — cross-origin `<script src>` include leaks canary via global assignment)_
 
 ## 4.12 API — 1/1 ✅ COMPLETE
 - [x] 4.12.1 GraphQL _(introspection-enabled; privileged query/field discovered via introspection → canary; real graphql-js)_
