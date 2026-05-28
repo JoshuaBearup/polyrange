@@ -20,7 +20,7 @@ export const RULE_POOL = [
 
 export const defences = {
   0: {
-    canonicalPayload: (canary, scenario) => `zzx' UNION SELECT id, name, value FROM ${scenario.vaultTable} -- `,
+    canonicalPayload: (canary, scenario) => `zzx' UNION SELECT id, account, secret FROM ${scenario.sensitiveTable} -- `,
     naiveBlockedExpected: false,
     bypassPayloads: [],
   },

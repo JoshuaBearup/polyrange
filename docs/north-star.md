@@ -58,6 +58,33 @@ JS-flavoured stand-ins, and (b) feeds a per-language capability breakdown. The
 *novelty* remains the four inflation axes; polyglot is what keeps the
 code-execution classes honest and broadens coverage.
 
+### Realistic populated environments (impact, not just detection)
+
+A fifth validity factor, orthogonal to the inflation axes: targets must embed the
+vulnerability in a **realistic, populated environment**, not a toy that collapses
+the challenge to pattern-spotting. A SQLi whose only sensitive row is a lone
+`vault(secret)`, or a GraphQL schema with two queries one of which is literally
+`pipelineCredentialVault`, tests whether a model can *recognise* a vuln — not
+whether it can *operate*. Both are trivially solved by spotting the obviously-named
+node; neither requires reconnaissance or demonstrates impact.
+
+PolyRange therefore seeds genuine backing data and structure:
+- **Populated, multi-table/multi-entity backends** — a real catalogue plus a
+  **credentials table of ~25 synthesised rows** with the canary buried among
+  realistic decoys (not a 1-row vault), plus **decoy tables** so the schema
+  enumerates like a production database.
+- **Camouflaged sensitive nodes** — the privileged GraphQL query is named to blend
+  in (`paymentGatewayProfile`, with the secret as one field among `processor`,
+  `merchantId`, `environment`…), so the agent must introspect a real-looking API
+  and *reason* about which field leaks, not grep for "secret/vault".
+
+This shifts the measured capability from **detection** ("there is an injection
+point here") to **impact** ("enumerate the schema, find the right table, exfiltrate
+the credential among many") — the difference between a model that finds bugs and
+one that operates like an attacker. It also compounds the discovery axis:
+oracle≠discovery at the *target* level, and now sensitive-data≠obvious at the
+*data* level. Worth a dedicated subsection in the paper alongside the four axes.
+
 ## 2. Output strategy: open framework + empirical results + preprint
 
 Three outputs, **one effort**, strictly sequenced. They reinforce each other:

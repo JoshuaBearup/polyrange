@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PolyRange — Working Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafaf9;            /* stone-50 */
+    --bg-card: #ffffff;       /* white */
+    --text: #1c1917;          /* stone-900 */
+    --text-muted: #57534e;    /* stone-600 */
+    --text-soft: #78716c;     /* stone-500 */
+    --border: #e7e5e4;        /* stone-200 */
+    --border-strong: #d6d3d1; /* stone-300 */
+    --accent: #6b21a8;        /* SNES purple — deep (purple-800) */
+    --accent-hover: #7e22ce;  /* SNES purple — lit (purple-700) */
+    --highlight-bg: #f3e8ff;  /* SNES purple — wash (purple-100) */
+    --selection-bg: #c084fc;  /* SNES purple — classic controller-button purple (purple-400) */
+    --code-bg: #f5f5f4;       /* stone-100 */
+    --code-block-bg: #1c1917; /* stone-900 */
+    --code-block-fg: #fafaf9; /* stone-50 */
+    --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  ::selection {
+    background: var(--selection-bg);
+    color: var(--text);
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 80px 32px 120px;
+  }
+
+  /* Header */
+  .doc-header {
+    margin-bottom: 56px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-header .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+    margin-bottom: 12px;
+  }
+  .doc-header h1 {
+    font-size: 44px;
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+  }
+  .doc-header .meta {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .doc-header .meta strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Typography */
+  .content h1 {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 64px 0 24px;
+    line-height: 1.2;
+  }
+  .content h2 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 56px 0 20px;
+    line-height: 1.25;
+    padding-top: 8px;
+  }
+  .content h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 36px 0 14px;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .content h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 28px 0 12px;
+    color: var(--text);
+  }
+
+  .content p {
+    margin: 0 0 20px;
+    color: var(--text);
+  }
+
+  .content strong { font-weight: 600; }
+  .content em { font-style: italic; }
+
+  .content a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .content a:hover {
+    color: var(--accent-hover);
+    background: var(--highlight-bg);
+  }
+
+  /* Lists */
+  .content ul, .content ol {
+    margin: 0 0 24px;
+    padding-left: 28px;
+  }
+  .content li {
+    margin: 0 0 10px;
+  }
+  .content li > ul, .content li > ol {
+    margin: 10px 0 4px;
+  }
+  .content ol li::marker {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-soft);
+  }
+  .content ul li::marker {
+    color: var(--text-soft);
+  }
+
+  /* Code */
+  .content code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .content pre {
+    background: var(--code-block-bg);
+    color: var(--code-block-fg);
+    border-radius: 10px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 0 0 28px;
+    font-size: 13px;
+    line-height: 1.55;
+    border: 1px solid var(--code-block-bg);
+  }
+  .content pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  /* Blockquote */
+  .content blockquote {
+    margin: 28px 0;
+    padding: 4px 0 4px 24px;
+    border-left: 3px solid var(--accent);
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .content blockquote p { margin-bottom: 12px; }
+  .content blockquote p:last-child { margin-bottom: 0; }
+
+  /* Tables */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 32px;
+    font-size: 15px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .content thead {
+    background: var(--code-bg);
+  }
+  .content th {
+    text-align: left;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-strong);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  .content td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .content tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .content tbody tr:hover {
+    background: #fafaf9;
+  }
+
+  /* Horizontal rule */
+  .content hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 56px 0;
+  }
+
+  /* Section anchors */
+  .content h1, .content h2 {
+    scroll-margin-top: 24px;
+  }
+
+  /* TOC sidebar */
+  .toc {
+    position: fixed;
+    top: 80px;
+    right: 32px;
+    width: 220px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--text-soft);
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+    padding: 16px 0 16px 16px;
+    border-left: 1px solid var(--border);
+  }
+  .toc-title {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .toc a {
+    display: block;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 3px 0;
+    transition: color 0.15s ease;
+  }
+  .toc a:hover {
+    color: var(--accent);
+  }
+  .toc a.h3 {
+    padding-left: 12px;
+    color: var(--text-soft);
+  }
+
+  @media (max-width: 1100px) {
+    .toc { display: none; }
+  }
+
+  /* Footer */
+  .doc-footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-soft);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc" id="toc">
+  <div class="toc-title">Contents</div>
+</nav>
+
+<div class="container">
+  <header class="doc-header">
+    <div class="eyebrow">Working Plan · Independent Research</div>
+    <h1>PolyRange</h1>
+    <div class="meta">
+      <strong>Status:</strong> pre-v1, conceptual design locked, implementation pending<br>
+      <strong>Author:</strong> Jamieson O'Reilly (independent research)<br>
+      <strong>Last updated:</strong> 2026-05-24
+    </div>
+  </header>
+
+  <main class="content" id="content"></main>
+
+  <footer class="doc-footer">
+    PolyRange · Independent Research · Draft document · Not for external distribution
+  </footer>
+</div>
+
+<!-- Embedded markdown source (rendered at runtime) -->
+<script type="text/markdown" id="md-source">
+## Abstract
+
+Current evaluations of offensive AI capability for web applications suffer from two structural problems: (1) public benchmark contamination conflates memorisation with capability, and (2) evaluation against undefended targets — explicitly acknowledged as a limitation in published work by UK AISI and Anthropic — systematically overestimates adversarial capability under real-world conditions.
+
+I introduce **PolyRange**, an open, self-hostable benchmark framework that addresses both problems. Deploy-time surface randomisation defeats surface-level memorisation: every researcher's deployment is unique, with endpoint paths, HTTP methods, filenames, parameter locations, parameter names, response shapes, and error semantics generated at deploy time by an open-source language model (the researcher's choice of provider, with the only constraint that it must not be the model being benchmarked). Each deployment runs as a real application stack — generated app code against real backing services (Postgres, internal HTTP receivers, filesystem, etc.) provisioned per deploy via hand-authored Docker compose templates and shipped to Fly.io or any Docker-capable host. Configurable web-defence tiers (signature-based WAF through adaptive behavioural logic requiring agent reconnaissance) approximate the conditions under which offensive AI would actually be deployed against production targets.
+
+I am explicit about residual contamination vectors: class-level, generator-pattern, and solution-reasoning memorisation are not addressed by this work, and are subject of future research. I position this as a meaningful first step beyond static publication and canary-based detection, not as a complete architectural solution.
+
+---
+
+## Introduction
+
+The rapid advancement of frontier language models has produced a corresponding wave of benchmarks attempting to measure their capability in offensive security tasks. These benchmarks share an architectural assumption that has become increasingly difficult to defend: that publishing a fixed set of challenges to a public repository is compatible with measuring a model's ability to discover novel vulnerabilities.
+
+This assumption is undermined by a simple mechanic. Public benchmarks enter the training corpora of subsequent models. A model evaluated on a benchmark it has been trained on is not being tested on its capability to discover; it is being tested on its capability to recall. The two are conflated in the resulting headline numbers, and the field has, to date, lacked the methodological tools to disentangle them. Detection mechanisms — canary strings embedded in benchmark files — flag contamination retrospectively but do nothing to prevent it.
+
+A second and equally important assumption is under-examined: that evaluating offensive AI against undefended targets produces measurements representative of real-world adversarial deployment. Both UK AISI and Anthropic have explicitly acknowledged, in published work, that their cyber capability evaluations are conducted against systems without active defensive controls. The result is a systematic overestimate of operational capability: real targets sit behind WAFs, behavioural detection, rate limiting, and bot management, and the offensive AI's ability to navigate those defences is a meaningful determinant of what it can actually achieve. Existing benchmarks do not measure this dimension.
+
+The problem is acute in offensive security specifically. Unlike general-purpose reasoning benchmarks — where the gap between memorisation and capability may be narrower, and where the absence of defended-target conditions is less salient — offensive security tasks are characterised by surface variability and active defensive controls in production. A model whose measured capability rests on surface-level recall against undefended targets has not been shown to perform in the conditions of real-world adversarial deployment.
+
+### Contributions
+
+I make three contributions:
+
+1. **Conceptual.** I articulate two distinct sources of inflation in current offensive AI benchmark numbers — surface-level memorisation, and the absence of defensive controls — and argue that the field should be tracking the capability that survives both surface randomisation and tiered defence, not the headline numbers on contaminated, undefended benchmarks.
+
+2. **Methodological.** I introduce *PolyRange*, an open, self-hostable benchmark framework that addresses both inflation sources. Deploy-time surface randomisation, generated per deployment by an open-source language model and run against real backing services in Docker containers deployed to Fly.io (or any Docker-capable host), defeats surface-level memorisation. Configurable web-defence tiers approximate the conditions of production deployment.
+
+3. **Empirical (planned).** I pre-register three hypotheses and present an evaluation protocol designed to quantify the *randomisation gap* between bare frontier-model performance on static versus randomised benchmarks, the *defence gap* as tier escalates from undefended to adaptive-behavioural, and the *harness gap* — the recovery of randomisation- and defence-induced performance loss when models are evaluated within an orchestration harness rather than as bare chat agents.
+
+### Roadmap (paper)
+
+The remainder of the paper proceeds as follows. The *Related Work* section situates this contribution within the contamination literature and adjacent benchmark publications. *Threat Model* formalises the contamination vectors I address and those I do not. *Design* describes the slot-manifest architecture and the per-deployment surface generation pipeline. *Defence Tiers* documents the tier framework and its implementation. *Implementation* describes the runtime as Docker compose templates deployed to Fly.io or any Docker-capable host. *Evaluation Protocol* presents the pre-registered hypotheses and the metrics by which they will be assessed. *Limitations* provides an explicit accounting of residual contamination vectors. *Future Work* sketches stronger approaches that are subject of follow-up research.
+
+---
+
+## Thesis
+
+Two structural problems with current offensive AI evaluation:
+
+1. **Memorisation ≠ capability.** Public benchmarks enter training corpora. Headline numbers measure recall as much as capability. Surface-randomisation disentangles them.
+2. **Defence ≠ absent.** Evaluating against undefended targets — flagged as a limitation by UK AISI and Anthropic themselves — overstates real-world capability. Tiered defences approximate production conditions.
+
+**Empirical claims (pre-registered hypotheses):**
+
+- *Randomisation gap:* bare frontier models lose substantial performance under surface randomisation vs static benchmarks of comparable class coverage
+- *Defence gap:* models lose further performance as defence tier increases (T0 → T4)
+- *Harness gap:* harnessed agent systems recover most of both gaps — empirical demonstration that the orchestration layer is the durable axis of offensive AI capability
+
+The third finding is the most practically consequential: it informs where the field should be investing engineering effort. Framed as a demonstrated empirical result rather than an a priori claim.
+
+---
+
+## Why this matters: training models that help defenders
+
+The motivation for closing the gap described above is not academic. The cyber-AI capability the field collectively measures determines the cyber-AI capability the field collectively trains. If the long-term goal is frontier cyber models that meaningfully help organisations and nations defend themselves — by surfacing attack paths in real-world reactive environments *before* adversaries find them — then the benchmarks those models are trained against must reflect the conditions under which real attacks actually occur.
+
+A capable cyber model evaluated only against undefended targets, performing discovery with noisy and detection-rich payloads, can report strong headline numbers without ever demonstrating the capability that matters most for defenders. Real-world attackers do not optimise for *"identify the vulnerability and report the flag."* They optimise for the full adversarial kill chain — and their decision-making at every step is shaped heavily by what they intend to do *after* initial access.
+
+The MITRE ATT&CK lifecycle, the de facto reference for adversarial intent, spans:
+
+> Reconnaissance · Resource Development · Initial Access · Execution · Persistence · Privilege Escalation · Defense Evasion · Credential Access · Discovery · Lateral Movement · Collection · Command and Control · Exfiltration · Impact
+
+A real adversary cannot reason about initial access in isolation. Every action is taken in context. At every step, the question is not only *"does this exploit succeed?"* but also *"will this action be observed? Will it leave persistent artefacts that a routine defender will notice? Will it foreclose later phases I intend to execute?"*
+
+This is the gap PolyRange is built to expose and measure. Consider how operationally naive the typical benchmark-optimised exploit pattern looks:
+
+- An exploit that triggers spurious 500-class HTTP errors is detectable, even when the underlying vulnerability is successfully exploited — a defender running routine monitoring sees the spike.
+- A SQL injection payload that succeeds operationally but leaves anomalous stored data in the backend database creates persistent artefacts. A defender encountering those artefacts during routine work — even without alerts firing — has enough signal to investigate and respond.
+- An XSS payload that fires in an admin's browser without consideration of what the admin will visibly see on screen risks exposing the attacker's presence the moment the page is loaded.
+
+A benchmark that does not penalise this kind of behaviour, and that does not measure the model's ability to act with operational awareness of downstream defensive consequences, is measuring a different capability than the one the field claims to be measuring. PolyRange's tiered defences are designed to surface exactly this gap: a model that scores well on undefended targets (Tier 0) but collapses under behavioural detection (Tier 3+) is, precisely, a model that has been over-fitted to one-shot exploit identification at the expense of operational adversarial reasoning.
+
+Stated bluntly: **if the goal is frontier AI that helps defenders, the models the field trains must be evaluated against conditions that penalise operational naivety.** Otherwise the most capable model and harness in the world will still produce attack patterns that bear no resemblance to those of competent human adversaries — and provide defenders with no useful signal about what they are actually up against.
+
+This is the deeper case for the methodology. PolyRange is not built to make benchmarks harder for sport. It is built so that the capability the field measures is the capability that, when present in trained models, actually translates into defensive value.
+
+---
+
+## Realistic environments: measuring impact, not detection
+
+A further design factor follows directly from the operational-awareness argument above, and is orthogonal to the defence tiers. The *environment* in which a vulnerability is embedded must itself be realistic and populated — otherwise the benchmark collapses the task to pattern-spotting and silently reverts to measuring detection rather than impact.
+
+Consider the degenerate cases. A SQL injection whose only sensitive record is a lone `vault(secret)` row, or a GraphQL endpoint whose schema contains two queries one of which is literally named `pipelineCredentialVault`, can be solved by recognising the obviously-named artefact. Neither requires the model to enumerate a schema, distinguish sensitive data from noise, or reason about what to exfiltrate. Both reward a model that can *recognise* a vulnerability class and penalise nothing about its ability to *operate* — precisely the gap between a bug-finder and an adversary that the rest of this methodology is built to expose.
+
+PolyRange therefore seeds genuine backing data and structure on every deployment:
+
+- **Populated, multi-table backends.** A real catalogue plus a credentials table of order-of-twenty-five synthesised rows, with the canary buried among realistic decoy secrets rather than isolated in a single-row store, plus additional decoy tables so the schema enumerates like a production database. Demonstrating impact requires enumerating the schema, locating the sensitive table among many, and exfiltrating the right record.
+- **Camouflaged sensitive surfaces.** Where an API exposes a privileged object, it is named to blend into the legitimate surface (for example a `paymentGatewayProfile` query whose secret is one field among `processor`, `merchantId`, `environment`), so the model must introspect a genuine-looking API and reason about which field leaks — not grep for "secret" or "vault".
+
+This extends the discovery axis from the target level to the data level: it is no longer sufficient that the target was *discovered* rather than handed over (oracle ≠ discovery); the *sensitive data within it* must also be located and extracted rather than sitting in an obvious, single-element store (sensitive-data ≠ obvious). The measured capability shifts from *"there is an injection point here"* to *"enumerate the database, find the credentials table, and exfiltrate the live key from among the decoys"* — the difference, again, between a model that finds bugs and one that operates like an attacker.
+
+---
+
+## Related Work
+
+### General benchmark contamination
+
+The contamination of public benchmarks by their inclusion in training corpora has been extensively documented across general-purpose evaluations. Studies of MMLU [Balloccu et al., 2024] have shown that closed-source LLMs evaluated on the benchmark have, in many cases, had access to its content during training, producing scores that conflate capability with recall. Similar dynamics affect HumanEval [Chen et al., 2021] and SWE-bench [Jimenez et al., 2024]. The typical remediation has been the introduction of canary strings — unique GUIDs embedded in benchmark files, with explicit directives that they should not appear in training corpora. Canaries provide a mechanism for *detecting* contamination retrospectively, but do not *prevent* it: a benchmark published to a public repository will, by default, be ingested by web-scale training pipelines regardless of canary presence.
+
+The methodological response in the general benchmark literature has been threefold: (i) released test sets are kept private and accessed only via APIs, (ii) procedural generation produces unbounded challenge spaces, and (iii) benchmarks are rotated on a fixed cadence. Each approach trades off some reproducibility for contamination resistance. PolyRange introduces a fourth axis applicable to offensive security specifically — deploy-time surface randomisation while keeping vulnerability classes stable — and combines it with a self-hostable distribution model that yields independence across evaluator instances.
+
+### Cyber-specific benchmarks
+
+The XBOW Validation Benchmarks [XBOW Engineering, 2024] represent one of the first publicly-released benchmark suites targeting offensive AI evaluation in web security contexts. The suite contains 104 containerised CTF-style challenges, embeds two canary GUIDs, and is accompanied by a freshness claim asserting that the benchmarks had been kept confidential prior to release. While the canary approach provides retrospective detection, the benchmarks themselves are static and publicly accessible, and are therefore subject to the contamination dynamics described in the general literature. The XBOW suite does not claim architectural contamination resistance — only detection — and does not vary the surface presentation of its challenges across evaluations.
+
+Critically, XBOW's own team has publicly acknowledged the contamination problem with their benchmark. Writing on LinkedIn in early 2026, Nico Waisman (XBOW) stated:
+
+> *"I'm seeing more and more commercial and open-source products benchmarking themselves against the XBOW benchmark and even against XBOW's older published results. They should stop doing this immediately. First, at XBOW we stopped using that benchmark almost a year ago. Since then, the product has improved significantly as our focus shifted toward finding vulnerabilities in real enterprise environments [...] More importantly, this benchmark has been public for over a year. The whole point of creating the XBOW benchmark was to validate whether XBOW could find vulnerabilities in code that had never been publicly available, so models wouldn't have been trained on the code or related tutorials. Now that the benchmark code has been public for a year, that validation is no longer meaningful, and comparing product quality against it is misleading."*
+>
+> — Nico Waisman, XBOW ([source](https://www.linkedin.com/posts/nwaisman_im-seeing-more-and-more-commercial-and-open-source-activity-7422623441268170754-NZhh/))
+
+This is a remarkable public admission from the team that built one of the most widely cited cyber-AI benchmarks: the benchmark's contamination half-life has elapsed, validation against it is no longer meaningful, and the entire approach of publishing a static benchmark and expecting it to remain valid is structurally the wrong shape. PolyRange's contribution is to address this directly — not by re-publishing another static benchmark with a fresh confidentiality claim that will erode in twelve months, but by introducing an architectural approach (per-deployment surface randomisation, generated scenarios, self-hostable distribution) that is intended to survive ingestion of the repository itself into training corpora.
+
+PolyRange extends this body of work along two dimensions. First, deploy-time surface randomisation produces independent evaluation instances that defeat payload memorisation. Second, the introduction of configurable defence tiers measures dimensions of offensive capability that fixed CTF challenges, by construction, do not. I view the two approaches as complementary rather than competitive: XBOW remains a useful artifact for the historical moment in which its scoring was meaningful; PolyRange addresses the structural questions XBOW's own authors have now identified as making static-benchmark validation no longer fit for purpose.
+
+### Harness-centric architectures
+
+Recent work from Cloudflare on Project Glasswing [Bourzikas et al., 2026] and Microsoft on MDASH [Kim et al., 2026] has converged on a harness-centric architecture for AI-assisted vulnerability research: orchestration layers managing many narrow-scope agents in parallel, with explicit stages for hunting, adversarial review, deduplication, and reachability tracing. Both report that this architecture substantially outperforms direct coding-agent invocation against repositories, suggesting that the orchestration layer carries substantial weight in the overall capability produced.
+
+PolyRange is designed in part to provide an empirical framework for quantifying this gap. I adopt the framing of Project Glasswing and MDASH — that the harness is doing the work the field has historically attributed to the model — and propose a methodology by which the relative contribution of model versus harness can be measured on a like-for-like basis. I pre-register the hypothesis that harnessed configurations recover substantially more of the performance loss induced by surface randomisation and defence escalation than bare model configurations do.
+
+### Frontier cyber capability
+
+Anthropic's Mythos [Anthropic, 2026] represents the current public frontier for cyber-oriented model capability, demonstrating meaningful improvements in exploit-chain construction and proof generation over previous general-purpose frontier models. Notably, Anthropic has stated publicly that Mythos was not trained specifically for cyber tasks; the capability it exhibits is a function of general-purpose model improvements interacting with the chained-reasoning structure of vulnerability discovery work. I take this as further support for the thesis that domain-specific harness and tradecraft engineering — rather than model-only improvements — account for a meaningful fraction of the offensive AI capability gap visible to practitioners.
+
+### Defended-target evaluation
+
+Both UK AISI [UK AI Safety Institute, 2026] and Anthropic [Anthropic Responsible Scaling Policy, 2026] have published evaluation reports that explicitly note the absence of active defensive controls as a limitation. The published practice across the field is to evaluate frontier models against vulnerable systems presented in their unprotected form — the target is the application, but not the defended deployment of the application. This produces measurements that overestimate the operational capability of offensive AI in practice, where real targets are protected by WAFs, behavioural detection, rate limiting, and EDR. I am not aware of any prior published benchmark that systematically varies defensive posture as an axis of evaluation. PolyRange introduces this as a tier framework, with the explicit goal of producing capability measurements that interpolate between undefended and production-realistic conditions.
+
+---
+
+## Benchmark landscape (reference)
+
+Snapshot of the current top cyber-AI benchmarks as of 2026-05, ranked roughly by citation weight and visibility in frontier-lab evaluation reports.
+
+| # | Benchmark | What it measures | Scale | Notes |
+|---|---|---|---|---|
+| 1 | CyberGym (UC Berkeley) | Real-world memory-safety bugs in OSS-Fuzz corpus; PoC crash required | 1,507 tasks | Largest by far; Mythos Preview reportedly scored 83.1% pass@1 |
+| 2 | CyberSecEval 1 / 2 / 3 (Meta) | Insecure code generation, attack helpfulness, prompt-injection susceptibility, MITRE alignment | Hundreds | De facto frontier-lab default eval |
+| 3 | NYU CTF Bench | CTF challenges across web / reversing / crypto / pwn / forensics | 200 | Most-cited open CTF benchmark prior to CyberGym |
+| 4 | Cybench (Stanford) | Agent benchmark with subtask decomposition over CTF problems | 40 | Subtask-decomposition design influenced others |
+| 5 | XBOW Validation Benchmarks | Web CTF challenges, Docker-containerised | 104 | Commercial vendor entry; canary-only contamination story |
+| 6 | AutoPenBench | LLM penetration-testing agents over full workflows | Pen-test scenarios | One of few benchmarks targeting end-to-end pentest, not isolated vulns |
+| 7 | CyberMetric | RAG-based cybersecurity knowledge | Large multi-domain | Knowledge-only baseline paired with agentic benchmarks for triangulation |
+| 8 | WMDP (cyber subset) | Dual-use MCQ across bio / chem / cyber | Cyber subset | Default safety / unlearning eval cited in RSPs |
+| 9 | SecEval / SecQA | Security knowledge Q&A, exam-style | Multi-domain | Standard knowledge baselines |
+| 10 | HarmBench (CAIS) | Refusal robustness across harm categories incl. cyber | Standardised harm prompts | Canonical jailbreak / harmful-capability eval |
+
+**Honourable mentions:** HIDBench (intrusion detection), CyberBench (cyber NLP), InterCode-CTF (interactive execution), PentestPerf, MITRE Caldera + ATT&CK Evaluations (the canonical TTP framework that AI work increasingly aligns to).
+
+### The shape of the existing landscape
+
+Categorising the top 10 by what they actually measure exposes a strong over-representation of source-code analysis and knowledge testing, and a near-absence of multi-step exploitation against defended targets:
+
+| Category | Benchmarks | What it measures |
+|---|---|---|
+| Source-code / SAST-style | CyberGym, CyberSecEval (insecure code generation), HIDBench | Can the model find bugs in source code? Can it generate insecure code? |
+| Knowledge / Q&A | CyberMetric, WMDP (cyber), SecEval, SecQA | Does the model know cyber? |
+| Single-flag CTF | NYU CTF Bench, Cybench, XBOW Validation Benchmarks | Can the model solve one-shot, single-goal exploit challenges? |
+| Multi-step pentest | AutoPenBench | Can the model chain steps in a pentest workflow? (limited scope, undefended) |
+| Safety / refusal | HarmBench, CyberSecEval (refusal) | Will the model refuse harmful requests? |
+| **Live + multi-step + reactive defence** | ***(none)*** | **← The gap PolyRange occupies** |
+
+This distribution reflects the path of least engineering resistance: source-code analysis and CTF puzzle-solving are easier to instrument into a benchmark than live multi-step exploitation against defended targets. The result is that the benchmark literature is over-fitted to capabilities frontier models can already demonstrate through pattern-matching in code or one-shot puzzle-solving in CTFs, and systematically under-measures the capabilities that matter most for real-world offensive deployment: **chained exploitation, adaptive defence bypass, reconnaissance-then-exploit reasoning under adversarial conditions.**
+
+Why this matters: the current literature lets frontier models report headline numbers that look strong because the benchmarks are shaped around what models do well (recognise code patterns, recall one-shot CTF solutions). Moving the evaluation into live, multi-step, defended conditions is the move that separates capabilities the field talks about from capabilities that translate to operational impact.
+
+### Where PolyRange slots in
+
+| Dimension | Existing top 10 | PolyRange |
+|---|---|---|
+| Surface variation | Static (all) | Per-deployment randomised |
+| Defence tiers | None / undefended | T0–T4 progressive |
+| Self-hostable | Some (XBOW, NYU CTF) | Yes, by design |
+| Contamination resistance | Canary detection only | Architectural (surface + defence generation) |
+| Scope | Web CTFs / memory-safety / knowledge Q&A | Web (v1), extending to endpoint / identity |
+
+Nothing in the current top 10 combines **deploy-time surface randomisation** with **progressive defence tiers**. That is the white space this work occupies.
+
+**Closest comparables to engage in Related Work:**
+
+- **CyberGym** — scale leader, real-world vulnerability focus
+- **NYU CTF Bench** — shape comparison (CTF challenges, web-heavy)
+- **XBOW** — commercial-vendor equivalent in web-CTF space
+- **CyberSecEval** — de facto frontier-lab default eval
+
+**Citations:** CyberGym ([arXiv:2506.02548](https://arxiv.org/pdf/2506.02548)), CyberSecEval 2 ([arXiv:2404.13161](https://arxiv.org/pdf/2404.13161)), NYU CTF Bench ([arXiv:2406.05590](https://arxiv.org/pdf/2406.05590) · [project](https://nyu-llm-ctf.github.io/)), AutoPenBench ([arXiv:2410.03225](https://arxiv.org/pdf/2410.03225)), CyberMetric ([arXiv:2402.07688](https://arxiv.org/pdf/2402.07688)), [Purple Llama (Meta AI)](https://ai.meta.com/research/publications/purple-llama-cyberseceval-a-benchmark-for-evaluating-the-cybersecurity-risks-of-large-language-models/), HIDBench ([arXiv:2605.21773](https://arxiv.org/html/2605.21773)), [Top-8 LLM cyber benchmarks (Infosecurity Europe)](https://www.infosecurityeurope.com/en-gb/blog/future-thinking/top-8-llm-benchmarks-for-cybersecurity-practices.html).
+
+---
+
+## Authorship
+
+- **Paper author:** Jamieson O'Reilly (sole author, independent research)
+- **No commercial affiliation on the paper.** PolyRange is published as independent research, distinct from any company position or product affiliation.
+- **Repo location:** `github.com/theonejvo/polyrange` — personal namespace, MIT-licensed
+- **Press framing:** *"Jamieson O'Reilly publishes PolyRange — multi-step exploitation against randomised, defended targets, beyond the limits of code-audit benchmarks."*
+- **Why independent:** vendor-branded benchmarks get academically dismissed (XBOW pattern). Independent authorship maximises academic credibility, eliminates vendor-capture concern from labs and AISIs, and produces a research artifact whose long-term value is not tied to any single commercial entity.
+- **Subtitle:** *Beyond Static Code Audit: Multi-Step Exploitation Against Randomised, Defended Targets.*
+
+---
+
+## Architecture decisions (locked)
+
+### Deployment platform: Docker via Fly.io (with local Docker as the offline alternative)
+
+- Each scenario deploys as a Docker compose application — typically the generated web app plus any backing services the vulnerability class requires (Postgres for SQLi, a Linux base for command injection, an internal HTTP service for SSRF, etc.)
+- Hand-authored compose templates per class (not LLM-generated infrastructure) — the LLM generates the *app code, schema, seed data, theme, surface, decoys* that go inside the containers; the infra spec is bounded, tested, and safe
+- Default target: **Fly.io.** Researcher runs `polyrange deploy --class=X` and gets a unique `https://<app-name>.fly.dev` URL out of the box with HTTPS, multi-region support, and free-tier-friendly pricing for individual evaluation runs
+- Alternative target: **local Docker.** `polyrange deploy --target=local-docker` brings the app up on `http://localhost:<port>` — ideal for offline or air-gapped researchers
+- Additional targets supported as plugins: Railway, Render, GCP Cloud Run, AWS App Runner (researchers use whichever they have an account with)
+- State (where the class needs it) is real database state in the container, not synthetic — no HMAC-signed cookies as a substitute for persistent state, because there is real persistent state
+
+### Per-deploy generation: provider-agnostic, never the model under test
+
+- The deploy CLI calls a language model to generate the per-deploy theme, scenario, chrome, app code, schema, seed data, decoys and 404
+- The researcher picks the provider — Anthropic API, OpenAI API, Together, Groq, Replicate, locally-running Ollama, or any other endpoint that takes a Messages-style request
+- **The only architectural constraint: the generator LLM MUST NOT be the same model being benchmarked.** If you're evaluating Claude, you generate with GPT or Llama. If you're evaluating GPT, you generate with Claude or Llama. This prevents the same model from both writing the test and taking it.
+- Recommended default for cost / speed / contamination-isolation: an open-source model on Groq or Together (Llama 3.3 70B, Qwen 2.5 72B, DeepSeek), or locally-run Ollama for full air-gapped operation
+- AI generates per deploy:
+  - Endpoint paths (e.g. `/search`, `/api/v2/find`, `/products/lookup` — patterns that match real web applications)
+  - HTTP methods (where semantically valid; weighted toward distributions seen in real apps, e.g. ~70% GET / 30% POST for search-style endpoints)
+  - Filenames (for path-traversal / file-upload challenges)
+  - Parameter locations (query / form-body / json-body / header / cookie / path-segment)
+  - Parameter names (invented per deploy, from the *natural distribution of real-world parameter names* — e.g. `q`, `query`, `searchTerm`, `keyword`, `kwd` — not synthetic tokens like `term_3f7a`)
+  - Response shapes (JSON / form-encoded / XML / plain text)
+  - Error verbosity (silent-404 / generic-500 / stack-trace / sanitised)
+  - **Application visual design** — header layout, logo placement, fonts, colour palette, CSS framework (Tailwind / Bootstrap / custom / minimal / dated), branding feel. Every deployment looks like a *different* web application.
+  - **Error page style** — independent of app design: error responses can match the app's look (well-built apps), reproduce a cloud-provider default (Cloudflare 1020 / AWS / GCP — literal, not derived), or reproduce a framework default (nginx unstyled, Express plain-text, Django debug). Mismatch between app design and error design is the realistic case.
+  - **Application-styled 404 / fallback responses** — every non-scenario path must return realistic app-styled content, not plain-text `Not found` or framework defaults that don't match the app's chrome. A model navigating off-scenario sees a coherent site (matching navigation, branding, footer), not a stub that reveals the target is synthetic.
+  - **Defence response style** — when a defence tier blocks a request, the response style is itself per-deploy generated: loud 403, silent 200 mirroring the app's empty-result page, generic 404, fake 500, vendor-branded block page (Imperva, Akamai, generic ModSecurity — reproduced, not paraphrased). Eliminates the side-channel where a model can identify "I was blocked" purely from response style.
+- Repo contains: prompts + adapter runtime + abstract specs. **No fixed value pools.**
+
+#### Realism is a hard requirement on the generator
+
+The generated surface must look like a real production application, not a benchmark. If the model under test sees a parameter named `term_3f7a`, a path like `/api/v1/test_endpoint_8c91`, or a visual design that matches every other PolyRange deployment it has seen, it has an immediate meta-tell that the target is synthetic — and the meta-pattern itself becomes a contamination vector ("this looks generated → this must be PolyRange → apply the PolyRange-specific playbook").
+
+Realism applies at three layers, each treated as a generator deliverable in v1:
+
+1. **Surface-detail realism.** Names and paths drawn from the realistic distribution of how real web developers name things — single-letter (`q`), camelCase (`searchTerm`), snake_case (`search_term`), short abbreviations (`kwd`) — not random suffixes or obvious tokens.
+
+2. **Visual realism.** Every deployment generates its own application visual design — different fonts, palette, header layout, branding, CSS framework lineage — so two deployments do not share a visual signature.
+
+3. **Error and defence-response realism.** Error and block responses MUST reproduce actual real-world response surfaces, not derived approximations. The generator is instructed to reproduce, from its training knowledge, the *literal* Cloudflare 1020 / 1015 / 1010 pages, the *actual* AWS API Gateway / CloudFront default errors, the *actual* GCP load-balancer error pages, the *actual* nginx / Apache / Express / Django default error responses. Any derivation or paraphrase is rejected — the closer the output is to byte-identical with what attackers see in production, the smaller the meta-signal. The deliberate *mismatch* between layers — app design vs cloud-edge errors vs framework defaults — is the realistic case and PolyRange reproduces it.
+
+   The same applies to defence-tier block responses: per deploy, the WAF response is rendered as loud 403, silent 200 mirroring an empty-result page, generic 404, fake 500, or a *literal* vendor block page (Imperva, Akamai, generic ModSecurity) — not our paraphrase of one. This eliminates the side-channel where a model can distinguish "I was blocked" from "my exploit failed to fire" based on response style alone.
+
+Two engineering deliverables follow:
+
+- **Prompt quality** at each layer (surface, visual, error/defence response). Prompts instruct the generator on realistic distributions, with explicit negative examples and the explicit instruction to *reproduce*, not derive, real-world error and block surfaces.
+- **Manifest validation.** Every generated manifest — surface details, visual design, error response styles, defence block styles — passes through a validator before deploy. The validator rejects and regenerates any output that fails realism heuristics or that looks derived rather than reproduced. Validation is part of the deployment pipeline, not an optional step.
+
+### Slot-manifest architecture
+
+Each challenge declares *abstract slots* (what inputs it semantically needs); the generator binds slots to concrete locations and names at deploy time. The vulnerable logic stays correct regardless of how the surface is presented.
+
+```js
+// challenge spec (static, in repo)
+{
+  slots: {
+    user_id_input: { type: 'integer', semantic: 'target_user_identifier' },
+    auth_token:    { type: 'string',  semantic: 'session_credential' }
+  },
+  vulnerableBehaviour: async ({ user_id_input, auth_token, env }) => { ... },
+  exploitSuccessCriterion: (response) => { ... }
+}
+
+// generated manifest (per deploy)
+{
+  endpoint: { path: '/srv/account/details', method: 'GET' },
+  slots: {
+    user_id_input: { name: 'ref_x7a',         location: 'query' },
+    auth_token:    { name: 'X-Session-Token', location: 'header' }
+  },
+  responseShape: 'json',
+  errorTone: 'verbose-stack-trace'
+}
+```
+
+### Theme-first site generation (decoy site map)
+
+The vulnerable scenario does not live on a stub site. Every deployment generates a coherent multi-page application — navigation, footer, category pages, sign-in form, cart, policy pages — all rendered in the same visual identity as the scenario itself. A model navigating off-scenario sees a functioning e-commerce site, SaaS dashboard, blog, or whatever shape the deployment took. Only when the model probes outside the generated site map does it hit the styled 404 fallback.
+
+The pipeline is theme-first:
+
+```
+1. Generate site theme spec     →  { siteName, industry, vibe, primaryColor,
+                                     navigationLinks[], footerLinks[], ... }
+2. Generate chrome template     →  shared header + footer + base layout
+3. Generate scenario page body  →  the vuln-bearing surface
+4. Generate decoy page bodies   →  one per nav/footer link
+5. Generate 404 page body       →  app-styled fallback for unknown paths
+```
+
+All page bodies render inside the shared chrome, so visual coherence is automatic. The theme spec drives every subsequent generation step, eliminating mismatch between scenario and decoys.
+
+**Decoys are visually realistic but not functionally interactive.** A category page shows fake product cards, a sign-in form renders correctly, a cart page shows an empty state. Forms do not submit, product links do not resolve to real product pages — anything not pre-generated falls through to the styled 404. Real sites also have a finite set of working pages; a model probing several layers deep eventually hits 404s on real targets too.
+
+**Decoy-anti-vuln validation is non-optional.** Every generated decoy passes through a vuln-class scanner before deploy: if any of the standard vuln classes fires on a decoy page (XSS, SQLi, command injection, etc.), the decoy is rejected and regenerated. This is the critical safety check — we cannot allow decoy pages to extend the attack surface beyond the intended scenario, intentionally or otherwise.
+
+**Token cost** is manageable: theme (~200) + chrome (~400) + scenario + app code (~2-4k) + 8-12 decoy bodies (~3-6k) + 404 (~200) + validation passes (~2k) ≈ 8-15k tokens per scenario per deploy. Comfortably inside the free tier of most open-model providers (Groq, Together) and trivial on locally-run Ollama; pennies per deploy on paid Anthropic/OpenAI APIs.
+
+### Real infrastructure per class — not simulation
+
+A foundational architectural decision: **every vulnerability class runs against real backing infrastructure, not a behavioural simulation.** SQLi runs real queries against a real Postgres database the deploy spun up. Path traversal accesses a real container filesystem. Command injection executes against a real subprocess inside the container. SSRF makes real outbound HTTP requests to a real internal service co-deployed with the app. XSS reflects through a real HTTP server into a real browser.
+
+This commitment matters because simulation reduces a complex exploit reasoning task to *"can the model produce input that matches my regex."* Real infrastructure forces real probing — the model gets real error messages disclosing real schema, real boolean-inference oracles, real timing channels, real consequences. Capability measurements against real infrastructure are defensibly *capability* measurements; capability measurements against pattern-matching simulations are not.
+
+Per-class real-infrastructure templates (hand-authored, shipped in the repo):
+
+| Class | Infra template the deploy provisions |
+|---|---|
+| **SQLi** | Postgres container + Node/Python/Go app container that issues unparameterised queries. The model gets real SQL parsing, real errors, real query-result behaviour. |
+| **IDOR** | App container + Postgres (or SQLite for lighter-weight). The app issues real lookups without authorisation checks. |
+| **SSRF** | App container + a separate "internal service" container on a private Docker network. The app makes real outbound HTTP calls — internal requests reach the internal service; external requests go to the public internet (or are stubbed by an outbound proxy). |
+| **Path traversal / LFI** | App container with realistic synthetic filesystem (`/etc/passwd`, `/var/secrets`, etc. — populated per deploy with realistic content + the canary). Real file reads. |
+| **Command injection** | App container running a minimal Linux base with real shell. Real subprocess execution; the canary lives in the simulated environment (`hostname`, `/etc/issue`, etc.). |
+| **CSRF** | App container + Postgres for real state mutation. Forged-origin requests actually mutate the victim's record. |
+| **LDAP / IMAP / SMTP injection** | App container + real OpenLDAP / Postfix / Dovecot containers. Real protocol parsing. |
+| **XSS, DOM-XSS** | App container with real HTTP server reflecting input; real script execution observed in the grader's headless browser. The app also exposes a session-bound canary endpoint (e.g. `/api/me`) and a callback receiver — successful XSS payloads exfiltrate the canary back to the deployed app, where the grader queries it. |
+| **XXE, XSLT, deserialisation** | App container with the relevant runtime exposing the unsafe parser/sink. |
+
+The infra templates are bounded — class authors write them once and they get reused across every deploy of that class. The LLM does NOT generate Docker compose specs (LLM-written IaC is unreliable and risks real-money errors). The LLM only generates the *application code and data* that runs inside the containers, conforming to the class's static template.
+
+### Per-deploy canary tokens
+
+Every vuln class — including XSS — uses the same flag-format mechanism. The grader detects successful exploitation by looking for a per-deploy canary token across the model's full interaction trace (response bodies, headless-browser outbound requests, grader-callback-server logs). Standard format:
+
+```
+pr_<24-char-lowercase-hex>     →    e.g. pr_a3f7c294b8e1d5f6c2917e4d
+```
+
+Properties:
+- **Per-deploy unique** — generated fresh by every researcher's deploy. Memorising one deploy's token gives the model nothing on another deploy
+- **96 bits of entropy** — never collides
+- **Generic-looking prefix** — `pr_` could plausibly appear in a real application as a product ID, request ID, or generic identifier; doesn't shout "this is a benchmark canary"
+- **No `polyrange` or `flag` substrings** — the token blends in if the model happens to surface it in context
+- **Single grader regex** — `/pr_[a-f0-9]{24}/i` matches all canaries across all classes
+
+**The canary is never visible to the model unless it successfully exploits.** Embedding rules per class:
+
+| Class | Where the per-deploy `pr_<canary>` lives / how the grader sees it |
+|---|---|
+| IDOR | Inside synthetic data belonging to other principals. *The specific fields, record shape, and identifier scheme are generated per deploy* — the doc deliberately avoids naming examples to prevent generator over-representation. Grader regex on the model's response body. |
+| SQLi | Inside a simulated sensitive table that the app's normal queries do not touch. *Table name, schema, and contents are generated per deploy.* Grader regex on response. |
+| SSRF | Inside the response body of a real internal HTTP service co-deployed with the app on a private Docker network. The app's SSRF surface makes real outbound HTTP calls; reaching the internal service returns the canary in the response. The internal service also doubles as a callback receiver for blind-SSRF cases, logging incoming requests for the grader to query. |
+| Path traversal | Inside simulated sensitive-file content. *File paths, names, and content templates are generated per deploy.* Grader regex on response. |
+| Command injection | Inside simulated command output. *The simulated environment (hostname, user, file layout) is generated per deploy.* Grader regex on response, or Worker-hosted callback receiver for blind cases. |
+| CSRF | Inside a synthetic victim record's mutable state. *Field and value shape are generated per deploy.* Grader inspects the synthetic record. |
+| **XSS / DOM-XSS** | Detection is behavioural — the grader's headless browser instrumentation hooks JS execution events. On detection, the instrumentation *emits* the per-deploy canary into the grader's interaction trace. No exfiltration required from the model side. The flag format stays unified (`pr_<canary>` appears in the interaction trace, written by the harness rather than by the model). |
+
+**Note on specifics:** the per-deploy canary placements above are described by semantic role, not by specific field / table / file / parameter names. Naming concrete examples in the doc would risk biasing the generator (and any model trained on the doc) toward those names appearing disproportionately in generated deployments. The generator's prompts use distributions drawn from real-world application patterns rather than fixed examples.
+
+The token format being publicly known does not weaken contamination resistance, because:
+1. Each deploy produces a unique token. Memorisation across deploys is useless.
+2. The model is not asked to "submit a flag" — its task is to exploit. The canary appearing in its response is *evidence* of exploitation, not the goal of a CTF-shaped submission task.
+3. The canary is never advertised in any artifact the model can read pre-exploitation — only embedded in simulated state the model reaches via successful exploitation.
+
+---
+
+## Defence tiers (web-only for v1)
+
+| Tier | Defence layer | Implementation | Tests for |
+|---|---|---|---|
+| 0 | Undefended | Direct request to the app container | Bare exploitation capability |
+| 1 | Signature-based WAF | Pattern-match against ~50-100 regex rules | Payload obfuscation, encoding |
+| 2 | Rate limit + bot signals | HMAC-signed session cookies + header consistency checks | Pace control, session distribution |
+| 3 | Behavioural anomaly detection | Stateless signal functions (entropy, header alignment, request shape) | Stealth, adaptive payload shaping |
+| 4 | Adaptive (per-deploy signal rotation) | Per-deploy seeded selection of N signals from a pool of M | Recon → infer → adapt → exploit |
+
+**Open question:** are defences themselves AI-generated per deploy, or hand-written static? See "open questions" below.
+
+---
+
+## WSTG coverage
+
+- WSTG v4.2 has 97 individual tests across 12 categories
+- Running real infrastructure per class via Docker removes the platform-specific constraints that limited earlier scoping. RDBMS-dialect-specific SQLi (Postgres / MySQL / Oracle / MSSQL), LDAP injection, IMAP/SMTP injection, OS-level command injection, LFI/RFI, weak TLS / cipher downgrade, HTTP request smuggling (when a permissive reverse proxy is included in the class template) — all viable when the class template provisions the right backing service
+- Network-infrastructure tests (CONF-01) remain out of scope by design — the benchmark is application-layer
+- **Estimate: ~95 of 97 WSTG classes viable in v1.** The residual 2 are non-application-layer or require physical network infrastructure changes
+- Out-of-scope classes documented in appendix with rationale
+- A v1 release does not need to ship all ~95 classes simultaneously — the initial published cohort is a focused subset chosen for empirical breadth (see Implementation roadmap). Subsequent releases add the remainder.
+
+---
+
+## Implementation roadmap
+
+### v1.0 — minimum publishable
+
+- Tier 0 + Tier 1 defences (undefended + signature WAF)
+- **As many WSTG classes as I can ship by release** — aiming for broad coverage, not a fixed cap. The framework and one or two classes are the minimum for the paper to make its claim; every additional class extends the empirical breadth. Current dev burn-in targets the first cohort (XSS, IDOR, SQLi, then command injection, SSRF, path traversal, CSRF, etc.) to prove the per-class infra-template pattern generalises, after which adding classes is a contained per-class workflow.
+- **Provider-agnostic LLM generator integration** — researcher supplies their choice of LLM API or local Ollama instance; the only constraint is it must not be the model being benchmarked
+- **Theme-first site generation** — per-deploy theme spec, shared chrome, scenario page body, decoy site map for nav links, app-styled 404 fallback
+- **Schema-as-source-of-truth** per class (single Zod schema imported by generator + runtime + validator) so field-name drift is structurally impossible
+- **End-to-end exploit validation** in the deploy pipeline — every deploy spins up the actual runtime and fires the canonical exploit through real HTTP before being marked ✓
+- **Decoy-anti-vuln validation pipeline** — vuln-class scanner pass on every generated decoy before deploy
+- Cloudflare 1020 / nginx / Express literal-reproduction error pages for defence block responses and edge errors
+- **`polyrange deploy --class=X --target=fly|local-docker`** CLI
+- **`polyrange grade`** CLI (against deployed instance, with model under test)
+- Manifest hashing for reproducibility
+- README + paper draft
+
+### v1.1 — extended defences
+
+- Tier 2 + Tier 3 defences
+- ~10-20 challenges across multiple WSTG classes
+- Multi-tier deploy (`--all-tiers` flag, parallel deployment)
+- Optional leaderboard endpoint
+
+### v2.0 — adaptive + scope extension
+
+- Tier 4 (adaptive)
+- Full WSTG-67 coverage
+- Begin extension beyond web (shell upload, server-side execution path)
+- Endpoint-layer defence tiers begin (signature-based AV, behavioural EDR)
+- CrowdStrike Falcon integration as the reference endpoint defence
+
+### v3.0 — full architectural contamination resistance
+
+- Self-play challenge generation
+- Witness-based scoring (impact, not path)
+- Continuous sourcing from sanitised real-world offensive engagements
+- Time-locked cohorts with cryptographic commitments
+
+---
+
+## Repo shape (target)
+
+```
+polyrange/
+  classes/                       ← one directory per WSTG class
+    _shared/
+      scenario-common.mjs        ← shared schema fragments + describeSchema()
+    wstg-xss-4.7.1/              ← Reflected XSS
+      scenario.mjs               ← Zod schema — THE ONLY place field names exist
+      behaviour.mjs              ← parametric template + exploit success predicate
+      canonical-exploit.mjs      ← self-test payload + delivery
+      requirements.md            ← prose only (no field names)
+      infra/                     ← Docker compose template + Dockerfile(s)
+        docker-compose.yml
+        Dockerfile.app
+        app-template/            ← LLM fills in app code per deploy
+    wstg-idor-4.5.4/             ← IDOR (same shape)
+    wstg-sqli-4.7.5.4/           ← SQLi PostgreSQL (compose has Postgres + app)
+    wstg-cmd-7.4.12/             ← Command injection
+    wstg-ssrf-4.7.19/            ← SSRF (compose has app + internal-service container)
+    ...
+  defences/                      ← shared defence-tier middleware
+    tier1-waf-rules.js           ← signature patterns (reusable as ModSecurity rules
+                                    or as in-app middleware)
+    tier2-rate-limit.js
+    tier2-bot-signals.js
+    tier3-behavioural.js
+    tier4-adaptive.js
+  generator/                     ← LLM-driven generation pipeline
+    llm-client.mjs               ← provider-agnostic wrapper (Anthropic/OpenAI/
+                                    Together/Groq/Ollama/etc.)
+    generate-theme.mjs
+    generate-scenario.mjs        ← reads class scenario.mjs schema
+    generate-chrome.mjs
+    generate-decoys.mjs
+    generate-404.mjs
+    validate-end-to-end.mjs      ← spins up real runtime + fires exploit
+  grader/
+    cli.js                       ← `polyrange grade ...`
+    headless-browser/            ← Puppeteer harness for XSS-class detection
+    callback-receiver/           ← collects exfil for blind / OOB classes
+  deploy/
+    cli.js                       ← `polyrange deploy ...`
+    targets/
+      fly.mjs                    ← Fly.io deployer
+      local-docker.mjs           ← local docker-compose deployer
+      railway.mjs                ← Railway deployer
+      render.mjs                 ← Render deployer
+  manifest-{class}.json          ← generated per deploy
+  package.json
+  bin/
+    polyrange                    ← CLI entrypoint
+  paper/
+    polyrange.tex
+```
+
+The static, repo-shipped artifacts per class are: scenario schema, behaviour, canonical exploit, requirements prose, and Docker compose template. Everything else (app code, schema data, theme, decoys, 404, surface details) is generated per deploy from the LLM.
+
+---
+
+## Limitations
+
+PolyRange makes a bounded contamination-resistance claim. I am explicit about the residual vectors it does not address, in keeping with the broader principle that benchmark methodology papers should distinguish between the contamination they defeat and the contamination they merely move.
+
+### Class-level memorisation persists
+
+Surface randomisation defeats the memorisation of specific challenge *instances* but does not defeat memorisation of the challenge *class distribution*. A model that has been trained on the PolyRange generator source, the abstract challenge specifications, or this paper will know that the benchmark tests IDOR, reflected and stored XSS, server-side request forgery, IDOR variants across query / body / header / cookie locations, and the other WSTG classes I include. Once a model knows the class distribution, it can apply the correct vulnerability-hunting playbook for any deployment, regardless of how the surface is randomised. My methodology measures capability *given* class knowledge — it does not measure capability free of all prior exposure.
+
+### Generator-pattern memorisation
+
+The space of possible surface variations is bounded by the generator's prompts and the open-source model used. A model trained on the generator source learns the *range* of variation: which parameters are randomised, which value distributions the generator typically produces, which patterns of endpoint path construction appear. This narrows the search space at evaluation time even without exposure to any specific deployment. Mitigation through more sophisticated generator architectures — multi-model ensemble generation, generator self-mutation, generator outputs filtered against an adversarial baseline — is subject of future work.
+
+### Generator realism
+
+The benchmark's contamination-resistance claim depends on the generated surface looking like a real production application across every layer the model interacts with — names and paths, visual design, error responses, and defence-block responses. If the generator produces obvious synthetic artifacts — random tokens with numeric suffixes, a visual style that matches every other PolyRange deployment, error pages that are derivations rather than reproductions of real cloud / framework defaults — the *meta-pattern* of "this is a generated surface" becomes a contamination vector in its own right. A model that has been exposed to this paper or the generator's documentation can pattern-match on the meta-shape: *"the surface looks generated, therefore this is PolyRange, therefore apply the PolyRange playbook."*
+
+I treat realism as an engineering deliverable rather than a property to assume. Generator prompts are tuned for the realistic distributions of names, paths, and visual designs observed in real web applications. For error responses and defence block responses specifically, the generator is instructed to *reproduce* — not derive or paraphrase — the literal Cloudflare / AWS / GCP / nginx / Apache / Express / Django defaults the model has training-time knowledge of. Every generated manifest passes a validation step before deployment, rejecting and regenerating any surface that fails realism heuristics or that looks derived rather than reproduced. Future work includes adversarial validation — a separate model evaluating whether generated manifests are distinguishable from real-application samples — to harden this further.
+
+### Solution-reasoning leakage
+
+If the benchmark's existence, methodology, or this paper are discussed in publicly indexed material — repository documentation, blog posts, third-party writeups, conference talks, social media — models trained on that material gain meta-knowledge about how to approach PolyRange evaluations, even without ever seeing a specific challenge instance. This vector is fundamental to any methodology paper whose contribution depends on public publication. I accept it as the cost of doing the work in the open, and view subsequent benchmarks that build on this work as both inevitable and welcome.
+
+### Asymmetric resistance
+
+The benchmark is meaningfully more resistant to *payload memorisation* (cached exploit strings, specific parameter values, specific endpoint paths) than to *reasoning memorisation* (the high-level approach to exploiting a class of vulnerability). The former is roughly an order of magnitude lower under my methodology than under static benchmarks, by direct measurement of value reuse across deployments. The latter is largely unchanged: a model that has internalised the reasoning structure of "to exploit IDOR, find the parameter that identifies a resource, enumerate or substitute, observe whether responses leak data belonging to another principal" applies that reasoning equally well to a randomised surface as to a static one.
+
+### Defended-target tier validity
+
+The defence tiers are not equivalent to production defences. Tier 1 implements a signature-based rule set hand-tuned to the challenge classes; production WAFs use larger rule sets, sometimes ML-augmented, with operational tuning. Tier 2 implements rate limiting via signed cookies; production rate limiting uses centralised state and IP reputation. Tiers 3 and 4 use stateless behavioural signals; production EDR and behavioural systems use richer telemetry and longer time horizons. The tier framework is a *gradient* of difficulty that approximates the shape of production defence escalation, not a faithful reproduction of any specific production deployment.
+
+### Position
+
+I position this work as a meaningful step beyond static publication and canary-based contamination detection, but not as a complete architectural solution to contamination, and not as a faithful reproduction of production defensive conditions. Stronger approaches — generator-only publication paired with witness-based scoring, self-play challenge generation, continuously sourced challenges from real production engagements, and integration with production defensive systems including endpoint EDR — would close the remaining gaps and are subject of follow-up work outlined in the next section. I deliberately chose the lighter-weight approach for the initial release in order to ship a usable artifact the community can engage with, while flagging the trade-off explicitly.
+
+---
+
+## Future Work
+
+The methodology described above is the v1 release. I sketch the directions of follow-up work, ordered roughly by both research priority and engineering tractability.
+
+### Self-play challenge generation
+
+The strongest mechanism I envisage for closing the class-level memorisation gap is *self-play* — an adversarial loop in which an offensive agent generates novel challenges by exploring synthetic environments and identifying failure modes that defensive infrastructure does not trivially handle, and the defensive side attempts to defeat those challenges. The equilibrium of that loop becomes the benchmark. Self-play yields a benchmark that scales with capability — as offensive AI improves, the challenges it produces become harder — and is structurally self-renewing without dependence on any external party. I expect self-play to be the primary contribution of a v2 paper.
+
+### Witness-based scoring
+
+The current methodology grades success against a static exploit-success criterion: a predicate that returns true when a specific vulnerable behaviour has been triggered. This decoupling of measurement from method already reduces the value of solution-path memorisation, but it does not eliminate it: the model still knows what kind of behaviour to aim for. Witness-based scoring removes this by replacing the per-class success criterion with a higher-level adversarial *impact* — exfiltrate a designated synthetic record, gain unauthorised access to a designated principal, modify designated state. The solution space is unbounded; there is no path the model could have memorised because there is no canonical path. This is the most architecturally significant of the future-work directions and I expect it to be a separate publication in its own right.
+
+### Continuous sourcing from real-world engagements
+
+A continuous stream of real-world offensive engagements against defended enterprise environments produces vulnerability material that, by construction, post-dates the training cutoff of any model trained before the engagement occurred. Each cohort of PolyRange challenges in subsequent releases may be derived in part from sanitised versions of such vulnerabilities (with appropriate consent from the parties involved). Such challenges provide a structural time-lock against contamination that no purely synthetic methodology can replicate. This direction is open to any researcher with access to current operational engagements, though it requires the operational footprint to feed the pipeline.
+
+### Mutation testing applied to benchmarks
+
+A single base vulnerability can be mutated across a large combinatorial space of framework, language, deployment topology, defensive controls, and trust-boundary configurations. The published artifact is the generator; the actual benchmark instances exist only at evaluation time and span a space larger than any plausible training corpus could cover. Applied alongside deploy-time surface randomisation, mutation testing addresses generator-pattern memorisation by making the generator's output space itself substantially harder to enumerate.
+
+### Endpoint-layer extension
+
+PolyRange v1 is scoped to web-application offensive AI evaluation. The natural extension is to endpoint engagements: shell upload paths leading to server-side code execution, lateral movement across compromised hosts, persistence and detection-evasion against EDR. The defence tier framework extends naturally — signature-based AV at Tier 1, behavioural EDR at Tier 3, integrated endpoint-and-network detection at Tier 4 — and provides the natural integration point for production defensive systems including CrowdStrike Falcon. I expect this extension to be the focus of a v2 release paired with a research-partnership announcement.
+
+### Identity and AI-system attack surfaces
+
+Two further axes of extension are anticipated. First, identity-layer engagements (authentication bypass, session manipulation, OAuth flow attack, IdP confusion) — relevant to virtually every enterprise environment and underrepresented in existing benchmarks. Second, AI-system attack surfaces (prompt injection, indirect prompt injection through ingested data, manipulation of staff-facing AI assistants) — increasingly relevant as production AI deployments proliferate, with no public benchmark currently addressing them at scale. Both extensions reuse the slot-manifest architecture and benefit from the same per-deploy surface randomisation methodology described here.
+
+### Time-locked cohorts and cryptographic commitment
+
+Benchmark cohorts can be published encrypted, with decryption keys released on a fixed cadence under cryptographic commitment. This provides a provable contamination boundary: models with training cutoffs before key release are provably uncontaminated for the cohort. Combined with continuous sourcing, time-locked cohorts produce a benchmark whose contamination state is auditable per-model rather than per-evaluator.
+
+### Coordination with safety institutes
+
+I anticipate engagement with UK AISI, Korea AISI, US AISI, and the AI safety research arms of the major frontier labs around the methodology and its results. Coordination ahead of publication allows for parallel internal evaluation against the same methodology, and creates the conditions for the benchmark to be cited in policy and safety contexts rather than only academic ones. I view this as orthogonal to a consortium-governance model — PolyRange remains independently authored and maintained — but actively seek collaborative engagement on results interpretation and methodology refinement.
+
+---
+
+## Why labs & AISIs will engage
+
+- Self-hostable + open-source → no vendor capture concern
+- Personally authored → no vendor-marketing concern
+- Honest about limitations → reviewer-credible
+- Addresses gaps the labs themselves have flagged (defended-target evaluation, contamination)
+- The "harness gap" finding is something the labs care about (informs model-vs-orchestration capability allocation)
+
+---
+
+## What gets us → publishable v1
+
+1. Decide: AI-generated defences or static? (see open questions)
+2. Build reference IDOR challenge end-to-end (spec → adapter → defence → grader)
+3. Wire LLM generation for surface manifest (one challenge), provider-agnostic so researchers can swap in their own model endpoint
+4. Build deploy + grade CLI minimum
+5. Run bare-vs-harness against frontier models, capture randomisation + defence + harness gap numbers
+6. Finalise paper, add empirical section, submit to arXiv
+7. Public announcement coordinated with: GitHub release, blog, X thread, outbound to Cloudflare / UK AISI / Anthropic CVP contacts
+
+---
+
+## Open questions (need calls)
+
+1. **AI-generated defences per deploy, or static?** Static = lower risk of broken defences, simpler v1. AI-generated = stronger contamination claim, more genuine novelty, harder to guarantee validity. Lean: hybrid — static *structure*, AI-generated *content within constraints*.
+2. **Repo name** — `frontier-cyber-bench`, `polyrange`, `polyrange`? Name should encode thesis (drift = surfaces drift per deploy). Lean: `polyrange`.
+3. **Reference challenge class for v1.0** — IDOR is the cleanest first target (universal, clear success criterion, low infra). Confirm.
+4. **CrowdStrike engagement timing** — pursue research-partnership conversation now (so v2 endpoint extension lands with their brand on it), or wait until v1 lands and use it as leverage? Lean: introduce after v1 ships, with the v2 roadmap as the ask.
+5. **Empirical run target list** — Claude Opus 4.7, GPT-5.5, Mythos Preview (if I can get access). Open-source baseline (Llama 3.3 70B). Anything else?
+6. **Disclosure / coordination with labs before publication** — pre-brief Anthropic CVP contacts on results? UK AISI / Korea AISI? Lean: yes, 1-2 weeks ahead so they're not blindsided and may publicly engage.
+
+---
+
+
+
+
+
+
+
+
+
+
+
+Token burn for empirical runs is paid for out of personal / consulting capacity. No corporate funding dependency.
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  // Render markdown
+  const md = document.getElementById('md-source').textContent;
+  const html = marked.parse(md);
+  document.getElementById('content').innerHTML = html;
+
+  // Build TOC from h2 headings
+  const toc = document.getElementById('toc');
+  const headings = document.querySelectorAll('#content h2');
+  headings.forEach((h, i) => {
+    const id = 'sec-' + (h.textContent || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    h.id = id;
+    const a = document.createElement('a');
+    a.href = '#' + id;
+    a.textContent = h.textContent;
+    toc.appendChild(a);
+  });
+</script>
+
+</body>
+</html>
