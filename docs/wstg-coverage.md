@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**75 / ~98 built.** Complete categories: 4.3 Identity Management, 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API. The denominator was previously stated as ~96 but the current v4.2 guide includes 4.4.11 (MFA), 4.6.10 (JWT), and 4.6.11 (Concurrent Sessions) which were missing from earlier counts; the figure is approximate because section 4.7's sub-atomics (e.g. the SQL dialect variants under 4.7.5) can be counted at varying granularities.
+**76 / ~98 built.** Complete categories: 4.3 Identity Management, 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API. The denominator was previously stated as ~96 but the current v4.2 guide includes 4.4.11 (MFA), 4.6.10 (JWT), and 4.6.11 (Concurrent Sessions) which were missing from earlier counts; the figure is approximate because section 4.7's sub-atomics (e.g. the SQL dialect variants under 4.7.5) can be counted at varying granularities.
 
 **Atomic policy:** PolyRange treats each WSTG atomic as its own test even when OWASP has merged them editorially. 4.3.5 (Weak Username Policy — officially merged into 4.3.4) is kept atomic because the underlying surfaces are distinct (signup-accepts-bad-username vs login-leaks-which-usernames-exist). Same principle will apply to any future official merges.
 
@@ -41,7 +41,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [x] 4.3.4 Account Enumeration _(login response differential `Wrong password for X` vs `No such account` + predictable-username-structure leak per WSTG — 5-6 themed decoy usernames + 1 privileged username whose structure contains the canary; submission with privileged name echoes username in the error, recovering canary.)_
 - [x] 4.3.5 Weak/Unenforced Username Policy _(KEPT ATOMIC per atomic policy above; OWASP merged this into 4.3.4 but the surfaces are distinct. Signup accepts a username that normalises (case-fold / whitespace-trim / NFKC) to a reserved internal name — server's identity check treats the user as that privileged identity, portal returns canary.)_
 
-## 4.4 Authentication — 5/10
+## 4.4 Authentication — 6/10
 - [ ] 4.4.1 Creds over Encrypted Channel _(skipped — TLS-transport, same blocker as 4.2.7 HSTS; revisit with the TLS-misconfig sidecar planned for 4.9.1)_
 - [x] 4.4.2 Default Credentials
 - [x] 4.4.3 Weak Lockout _(per-source attempt counter at T1 keyed on X-Forwarded-For; bypass rotates XFF per attempt)_
@@ -52,7 +52,7 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.4.8 Weak Security Question _(to build — forgot-password flow gated on a security question whose answer is recoverable from public profile data on the site itself; chain: read profile, answer question, reset password, recover canary)_
 - [x] 4.4.9 Weak Password Reset _(broken token↔account binding → reset admin → ATO)_
 - [ ] 4.4.10 Weaker Auth Alt-Channel _(to build — same identity reachable via a second authentication channel (mobile API endpoint, legacy form) that does not enforce the primary channel's controls — primary requires MFA, alternate does not)_
-- [ ] 4.4.11 MFA Bypass _(to build — MFA enforced on the form login flow but the post-MFA endpoint accepts a partial-auth token directly, or MFA verification accepts an empty/null code; canonical bug per WSTG-ATHN-11)_
+- [x] 4.4.11 MFA Bypass _(signup → login → /verify OTP gate → /portal. T0: portal omits mfa_verified check (forced-browse past MFA). T1: portal enforces mfa_verified but honours a debug-header allowlist; header name + value leak via stale HTML comment in homepage decoy, injected at T1 only by decorateDecoys hook.)_
 
 ## 4.5 Authorization — 4/4 ✅ COMPLETE
 - [x] 4.5.1 Directory Traversal / File Include
