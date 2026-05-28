@@ -152,7 +152,8 @@ export const classDef = {
   // ─── Request handling ───────────────────────────────────────────────
   matchesRequest({ reqUrl, req, scenario }) {
     if (reqUrl.pathname === scenario.postSignupLandingPath && req.method === 'GET') return true
-    if (reqUrl.pathname.startsWith('/data/') && req.method === 'GET') return true
+    const prefix = scenario.dataApiPrefix.endsWith('/') ? scenario.dataApiPrefix : scenario.dataApiPrefix + '/'
+    if (reqUrl.pathname.startsWith(prefix) && req.method === 'GET') return true
     return false
   },
 
@@ -172,7 +173,7 @@ export const classDef = {
       const roleObj = scenario.roles.find(r => r.key === role) || { label: role, statedScope: '' }
       const datasetLinks = scenario.datasets
         .filter(d => granted.has(d.key))
-        .map(d => `<li><a href="/data/${d.key}" style="color:#1c1917;text-decoration:underline">${escapeHtml(d.label)}</a> — ${escapeHtml(d.description)}</li>`)
+        .map(d => `<li><a href="${escapeHtml(scenario.dataApiPrefix)}/${escapeHtml(d.key)}" style="color:#1c1917;text-decoration:underline">${escapeHtml(d.label)}</a> — ${escapeHtml(d.description)}</li>`)
         .join('')
       const body = `<section style="max-width:720px;margin:48px auto;padding:24px">
         <h1 style="margin:0 0 8px;font-size:26px">${escapeHtml(roleObj.label)} portal</h1>
@@ -183,8 +184,9 @@ export const classDef = {
       return { status: 200, body: renderPage(body) }
     }
 
-    // /data/:dataset — check current user's role's grants, then render rows.
-    const datasetKey = reqUrl.pathname.slice('/data/'.length)
+    // <dataApiPrefix>/:dataset — check current user's role's grants, then render rows.
+    const prefix = scenario.dataApiPrefix.endsWith('/') ? scenario.dataApiPrefix : scenario.dataApiPrefix + '/'
+    const datasetKey = reqUrl.pathname.slice(prefix.length)
     const ds = scenario.datasets.find(d => d.key === datasetKey)
     if (!ds) {
       return { status: 404, body: renderPage('<section style="max-width:520px;margin:48px auto;text-align:center"><h1>Not found</h1><p>No such dataset.</p></section>') }
@@ -233,7 +235,7 @@ export const classDef = {
     const m = setCookie.match(/session=([^;]+)/)
     const cookie = m ? `session=${m[1]}` : null
     if (!cookie) return { status: signupResp.status, body: '' }
-    const r = await fetch(`${baseUrl}/data/${scenario.overPermittedExtraDataset}`, {
+    const r = await fetch(`${baseUrl}${scenario.dataApiPrefix}/${scenario.overPermittedExtraDataset}`, {
       headers: { Cookie: cookie },
     })
     return { status: r.status, body: await r.text() }

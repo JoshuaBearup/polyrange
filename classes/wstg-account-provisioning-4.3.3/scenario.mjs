@@ -38,6 +38,8 @@ export const Scenario = z.object({
     .describe('Path of the invite form (GET — renders the form, accessible to any authed user). MUST differ from invitePath if you want a separate GET form path, OR match invitePath (the form posts back to itself).'),
   adminDataPath: z.string().regex(/^\//)
     .describe('Path of the admin-only endpoint that returns the canary. MUST start with /. Properly admin-gated by the runtime (NOT the bug).'),
+  loginPath: z.string().regex(/^\//)
+    .describe('Path of the sign-in endpoint (GET = render form, POST = submit). Themed per-deploy (per the framework\'s deploy-time surface randomisation rule). MUST differ from /signup, inviteFormPath, invitePath, and adminDataPath.'),
 
   inviteFormCopy: z.object({
     heading: z.string().describe('Themed heading for the invite form'),

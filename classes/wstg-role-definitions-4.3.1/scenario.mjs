@@ -48,6 +48,9 @@ export const Scenario = z.object({
   featureLabel: z.string()
     .describe('A "data portal" / "operations console" feature where signed-in users see the datasets their role grants access to. Themed to the deployed business.'),
 
+  dataApiPrefix: z.string().regex(/^\/[a-z][a-z0-9_-]*(\/[a-z][a-z0-9_-]*)*$/)
+    .describe('Themed URL prefix the dataset endpoints live under (single or multi-segment: /workbench, /console, /portal/data, /api/datasets, /ops). The full per-dataset URL is `<dataApiPrefix>/<dataset.key>`. Per-deploy randomised — DO NOT use the literal "/data". No trailing slash.'),
+
   roles: z.array(Role).length(4)
     .describe('Four THEME-COHERENT public-facing role tiers offered at signup. They MUST make business sense for the theme — pharma gets clinical/regulatory roles, fintech gets compliance/treasury roles, SaaS infra gets engineering/support roles. Labels and statedScopes should sound like a real B2B signup tier list.'),
 

@@ -68,24 +68,24 @@ export const classDef = {
     if (reqUrl.pathname === scenario.inviteFormPath && (req.method === 'GET' || req.method === 'POST')) return true
     if (reqUrl.pathname === scenario.invitePath && req.method === 'POST') return true
     if (reqUrl.pathname === scenario.adminDataPath && req.method === 'GET') return true
-    if (reqUrl.pathname === '/login' && (req.method === 'GET' || req.method === 'POST')) return true
+    if (reqUrl.pathname === scenario.loginPath && (req.method === 'GET' || req.method === 'POST')) return true
     return false
   },
 
   async handleRequest({ req, reqUrl, scenario, session, db, helpers, renderPage, manifest }) {
-    // ── /login ──────────────────────────────────────────────────────
+    // ── login (themed per-deploy path) ──────────────────────────────
     // Lets the invited admin (created via /invite below) actually log in
     // and use their session. Email + password form.
-    if (reqUrl.pathname === '/login') {
+    if (reqUrl.pathname === scenario.loginPath) {
       if (req.method === 'GET') {
-        return { status: 200, body: renderPage(renderLoginForm()) }
+        return { status: 200, body: renderPage(renderLoginForm(scenario)) }
       }
       const form = new URLSearchParams(helpers.rawBody || '')
       const email = (form.get('email') || '').trim()
       const password = form.get('password') || ''
       const res = await db.query(`SELECT id, password_hash, role FROM pr_users WHERE email = $1`, [email])
       if (res.rows.length === 0 || res.rows[0].password_hash !== hashPassword(password)) {
-        return { status: 401, body: renderPage(renderLoginForm('Invalid credentials.')) }
+        return { status: 401, body: renderPage(renderLoginForm(scenario, 'Invalid credentials.')) }
       }
       const sid = 'sess_' + crypto.randomBytes(12).toString('hex')
       await db.query(`UPDATE pr_users SET session_id = $1 WHERE email = $2`, [sid, email])
@@ -140,7 +140,7 @@ export const classDef = {
         body: renderPage(`<section style="max-width:520px;margin:48px auto;text-align:center">
           <h1>Invite sent</h1>
           <p>Account created for <code>${escapeHtml(email)}</code> with role <strong>${escapeHtml(role)}</strong>.</p>
-          <p><a href="/login">Sign in as the new teammate</a></p>
+          <p><a href="${escapeAttr(scenario.loginPath)}">Sign in as the new teammate</a></p>
         </section>`),
       }
     }
@@ -148,7 +148,7 @@ export const classDef = {
     // ── /admin/data — properly admin-gated (the bug is NOT here) ─────
     if (reqUrl.pathname === scenario.adminDataPath && req.method === 'GET') {
       if (!session) {
-        return { status: 302, headers: { Location: '/login' }, body: '' }
+        return { status: 302, headers: { Location: scenario.loginPath }, body: '' }
       }
       const me = await db.query(`SELECT role FROM pr_users WHERE session_id = $1`, [session])
       if (me.rows.length === 0 || me.rows[0].role !== scenario.adminRoleKey) {
@@ -183,7 +183,7 @@ export const classDef = {
     })
     if (inviteRes.status !== 200) return { status: inviteRes.status, body: await inviteRes.text() }
     // 3. Log in as the new admin.
-    const loginRes = await fetch(`${baseUrl}/login`, {
+    const loginRes = await fetch(`${baseUrl}${scenario.loginPath}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `email=${encodeURIComponent(adminEmail)}&password=${encodeURIComponent(adminPw)}`,
@@ -227,12 +227,12 @@ function renderInviteForm(scenario) {
   </section>`
 }
 
-function renderLoginForm(errorMsg = '') {
+function renderLoginForm(scenario, errorMsg = '') {
   const err = errorMsg ? `<p style="color:#b00;margin:0 0 12px">${escapeHtml(errorMsg)}</p>` : ''
   return `<section style="max-width:420px;margin:48px auto;padding:24px">
     <h1 style="margin:0 0 8px;font-size:24px">Sign in</h1>
     ${err}
-    <form method="POST" action="/login" style="display:flex;flex-direction:column;gap:12px">
+    <form method="POST" action="${escapeAttr(scenario.loginPath)}" style="display:flex;flex-direction:column;gap:12px">
       <label style="display:flex;flex-direction:column;gap:4px">
         <span style="font-size:13px">Email</span>
         <input type="email" name="email" required style="padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px">
