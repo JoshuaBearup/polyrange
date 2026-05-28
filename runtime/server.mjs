@@ -56,6 +56,13 @@ if (classDef.requiresDatabase) {
     await classDef.initSchema({ db, rawScenario: scenario })
     console.log(`[runtime] schema ready`)
   }
+  // Optional canary-aware seed pass that runs AFTER schema init. Classes
+  // that bake the canary into seeded rows (role-definitions, etc.) use
+  // this so the canary value is injected at runtime, not in the manifest.
+  if (classDef.seedData) {
+    await classDef.seedData({ db, rawScenario: scenario, canary: manifest.perDeployCanary })
+    console.log(`[runtime] seed data inserted`)
+  }
 }
 
 // Optional per-class backend service (code-injection / SSTI / SSRF): a REAL app
@@ -238,8 +245,12 @@ async function handleSignup(req, res, rawBody) {
       return
     }
     const sessionId = newSessionId()
+    // Pass the parsed form (`signupData.form`) AND the convenience `email`
+    // field. Classes that need extra signup fields (role tiers, etc.) read
+    // from `form`. Backwards-compatible: existing classes only read `email`.
+    const formObj = Object.fromEntries(form.entries())
     if (classDef.onSignup) {
-      const result = await classDef.onSignup({ db, sessionId, rawScenario: scenario, signupData: { email } })
+      const result = await classDef.onSignup({ db, sessionId, rawScenario: scenario, signupData: { email, form: formObj } })
       if (result?.recordIdentifier) sessionRecords.set(sessionId, result.recordIdentifier)
     }
     const redirectTo = scenario.postSignupLandingPath || '/'
@@ -251,6 +262,11 @@ async function handleSignup(req, res, rawBody) {
 }
 
 function renderSignupForm(errorMsg = '') {
+  // Class-supplied signup form takes precedence — needed for multi-tier
+  // signups (role selection) where the default email-only form is wrong.
+  if (typeof classDef.renderSignupForm === 'function') {
+    return classDef.renderSignupForm({ scenario, errorMsg, escapeHtml })
+  }
   const copy = scenario.signupFormCopy || { heading: 'Sign up', ctaLabel: 'Create account' }
   const sub = copy.subheading ? `<p class="signup-sub">${escapeHtml(copy.subheading)}</p>` : ''
   const err = errorMsg ? `<p class="signup-error" style="color:#b00;margin-bottom:8px">${escapeHtml(errorMsg)}</p>` : ''

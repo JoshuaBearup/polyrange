@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**65 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API.**
+**66 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -30,8 +30,8 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.2.10 Subdomain Takeover _(OOS — DNS)_
 - [x] 4.2.11 Cloud Storage
 
-## 4.3 Identity Management — 1/5
-- [ ] 4.3.1 Test Role Definitions _(fit? review-only)_
+## 4.3 Identity Management — 2/5
+- [x] 4.3.1 Test Role Definitions _(role's permission DEFINITION is too broad — Twitter-2020-shape. Multi-tier signup with 4 themed roles (per-deploy theme-coherent), one role over-permitted to a sensitive dataset where canary lives. Distinct from 4.5.2/4.5.3 — auth check is enforced; the GRANT TABLE is wrong.)_
 - [x] 4.3.2 Test User Registration Process _(privilege mass-assignment via trusted account_type — instantiates the "register for different roles" objective)_
 - [ ] 4.3.3 Test Account Provisioning _(fit? review-only)_
 - [ ] 4.3.4 Account Enumeration _(fit? differential oracle, awkward flag)_
