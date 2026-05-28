@@ -11,7 +11,7 @@ import { Scenario } from './scenario.mjs'
 export const classDef = {
   wstgId: 'WSTG-CLNT-03',
   class: 'HTML Injection',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryInjected: true,

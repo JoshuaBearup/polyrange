@@ -28,7 +28,7 @@ function getDb(scenario, canary) {
 export const classDef = {
   wstgId: 'WSTG-ATHN-04',
   class: 'SQL Injection Auth Bypass',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryRuntime: true,

@@ -60,6 +60,29 @@ function ensureChromeInjection(chrome, injection) {
 
 function truncate(s, n) { s = String(s); return s.length > n ? s.slice(0, n) + '…' : s }
 
+// Poll the deployed URL until it responds (any HTTP response), or until the
+// deadline. Replaces the fixed post-deploy sleep — DB-backed classes (whose
+// Postgres init can take 10s+) often weren't ready by the old 3.5s wait,
+// surfacing as `fetch failed` on the first validator request.
+async function waitForReady(url, maxMs) {
+  const startedAt = Date.now()
+  let attempts = 0
+  while (Date.now() - startedAt < maxMs) {
+    attempts += 1
+    try {
+      const r = await fetch(url, { redirect: 'manual' })
+      // Any status (including 4xx/5xx) means the container is accepting
+      // requests — that's all we need before handing to the validator.
+      void r.status
+      log(`  ✓ ready after ${attempts} probe(s) (${((Date.now() - startedAt) / 1000).toFixed(1)}s)`)
+      return
+    } catch {
+      await new Promise(r => setTimeout(r, 1500))
+    }
+  }
+  log(`  ⚠ deploy never responded within ${(maxMs / 1000).toFixed(0)}s — letting validator try anyway`)
+}
+
 // Print the per-deploy token/cost summary (used by both success and failure
 // paths — failed deploys still spend generation tokens we want recorded).
 function logUsage() {
@@ -217,7 +240,12 @@ async function deploy() {
     log('\n[deploy:fly] Uploading + building on Fly remote builder...')
     deployment = await deployFly({ manifest, manifestPath, repoRoot, region: args.region || 'syd' })
     log(`  ✓ deployed at ${deployment.url}`)
-    await new Promise(r => setTimeout(r, 3500))
+    // Wait until the deploy actually accepts requests, rather than a fixed
+    // sleep. DB-backed classes (Postgres init takes several seconds) often
+    // weren't ready by the 3.5s mark, so the first validator fetch threw
+    // `fetch failed`. Poll for up to 45s; bail to the validator either way
+    // (the validator's own request will produce the canonical error).
+    await waitForReady(deployment.url, 45_000)
   }
 
   log(`\n[validate] T${tier} solvability check...`)

@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+echo "[start] starting postgres..."
+docker-entrypoint.sh postgres &
+echo "[start] waiting for postgres..."
+until pg_isready -U postgres -h localhost > /dev/null 2>&1; do sleep 0.3; done
+echo "[start] postgres ready"
+exec node /app/runtime/server.mjs

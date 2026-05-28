@@ -47,7 +47,7 @@ function parseBody(req, rawBody) {
 export const classDef = {
   wstgId: 'WSTG-INPV-05',
   class: 'NoSQL Injection',
-  defenceTiers: [0],
+  defenceTiers: [0, 1],
   Scenario,
   needsSignup: false,
   canaryRuntime: true,
