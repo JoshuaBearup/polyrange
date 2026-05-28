@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**47 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling.**
+**48 / ~96 built. Complete categories: 4.5 Authorization, 4.8 Error Handling, 4.12 API.**
 
 ## 4.1 Information Gathering — 9/10
 - [ ] 4.1.1 Conduct Search Engine Discovery _(OOS — external engines)_
@@ -115,5 +115,5 @@ _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / con
 - [ ] 4.11.12 Browser Storage _(browser oracle + localStorage read)_
 - [ ] 4.11.13 Cross-Site Script Inclusion
 
-## 4.12 API — 0/1
-- [ ] 4.12.1 GraphQL _(sidecar)_
+## 4.12 API — 1/1 ✅ COMPLETE
+- [x] 4.12.1 GraphQL _(introspection-enabled; privileged query/field discovered via introspection → canary; real graphql-js)_
