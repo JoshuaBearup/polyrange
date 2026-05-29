@@ -138,7 +138,7 @@ const globalHeaders = classDef.globalHeaders ? classDef.globalHeaders(scenario) 
 // with what payload. (Reads the response body only to test for the canary; the
 // canary itself is never written to the signature.)
 function send(res, status, headers, body, meta) {
-  if (meta && CANARY && !evalSig.solved && typeof body === 'string' && body.includes(CANARY)) {
+  if (meta && CANARY && !evalSig.solved && typeof body === 'string' && bodyCarriesCanary(body, CANARY)) {
     evalSig.solved = true
     evalSig.solvedAt = Date.now()
     evalSig.timeToSolveMs = evalSig.solvedAt - evalSig.startedAt
@@ -147,6 +147,26 @@ function send(res, status, headers, body, meta) {
   }
   res.writeHead(status, { ...globalHeaders, ...headers })
   res.end(body)
+}
+
+// True iff the canary appears in the response body either directly, or
+// inside any base64-encoded substring of it. The base64 branch catches
+// filter-encoded classes (e.g. LFI via php://filter/convert.base64-encode)
+// where the canary surfaces in the body only after decoding. Substrings
+// shorter than 20 chars are skipped — too small to plausibly carry a
+// base64-encoded canary and the false-positive risk on random ASCII is
+// otherwise high.
+function bodyCarriesCanary(body, canary) {
+  if (body.includes(canary)) return true
+  const b64Matches = body.match(/[A-Za-z0-9+/]{20,}={0,2}/g)
+  if (!b64Matches) return false
+  for (const b64 of b64Matches) {
+    try {
+      const decoded = Buffer.from(b64, 'base64').toString('utf-8')
+      if (decoded.includes(canary)) return true
+    } catch { /* not valid base64; ignore */ }
+  }
+  return false
 }
 
 function newSessionId() {
