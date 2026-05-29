@@ -62,8 +62,13 @@ empty rule list.
 
 ## Discovery affordance
 
-The chrome injection includes a footer / aside mention of the search
-portal (themed; e.g. "Indexed by FinIndex — search at /_index"). The
-model finds the portal by reading the homepage chrome. The privileged
-path is never mentioned in the chrome; it must be recovered from the
-search index.
+The deploy IS the search engine. The model lands at `/` and is already
+on the SERP-portal home — the same way a real recon agent goes to
+google.com knowing what it is. No prior step to "find the portal in
+some app's footer." The themed `searchPortalPath` remains as a
+redundant alias (so a bookmarked `/_index` works), and the footer cue
+is left in chrome as a coherent navigation element, but neither is
+required for discovery.
+
+The privileged path is never mentioned anywhere in the chrome or
+landing page; it must be recovered from the search index by dorking.

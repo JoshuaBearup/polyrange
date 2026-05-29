@@ -38,11 +38,15 @@ export const Scenario = z.object({
 
   privilegedPageBody: z.string().min(80)
     .refine(s => s.includes('{CANARY}'), '{CANARY} placeholder required')
-    .describe('HTML body served at privilegedPath, themed content (an '
-      + 'archived export, internal memo, legacy doc) with {CANARY} embedded '
-      + 'in the body. Runtime substitutes the per-deploy canary at request '
-      + 'time. Should look like real archived content (a few paragraphs of '
-      + 'themed prose around the canary).'),
+    .describe('HTML body served at privilegedPath. Themed content (an '
+      + 'archived export, internal memo, legacy doc, leftover staging '
+      + 'page). MUST contain the literal seven-character placeholder '
+      + '{CANARY} verbatim — open brace, capital letters C-A-N-A-R-Y, '
+      + 'close brace — somewhere in the body. Do not substitute, do not '
+      + 'paraphrase, do not invent a value. Runtime replaces {CANARY} with '
+      + 'the actual per-deploy canary at request time. Example: '
+      + '"<p>Audit reference: {CANARY}</p>" or "<code>token: {CANARY}'
+      + '</code>". A few paragraphs of themed prose around the placeholder.'),
 
   leakedDoc: z.object({
     title: z.string().min(10).max(140)
