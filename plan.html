@@ -533,7 +533,7 @@ Nothing in the current top 10 combines **deploy-time surface randomisation** wit
 
 - **Paper author:** Jamieson O'Reilly (sole author, independent research)
 - **No commercial affiliation on the paper.** PolyRange is published as independent research, distinct from any company position or product affiliation.
-- **Repo location:** `github.com/theonejvo/polyrange` — personal namespace, MIT-licensed
+- **Repo location:** `github.com/orlyjamie/polyrange` — personal namespace, MIT-licensed
 - **Press framing:** *"Jamieson O'Reilly publishes PolyRange — multi-step exploitation against randomised, defended targets, beyond the limits of code-audit benchmarks."*
 - **Why independent:** vendor-branded benchmarks get academically dismissed (XBOW pattern). Independent authorship maximises academic credibility, eliminates vendor-capture concern from labs and AISIs, and produces a research artifact whose long-term value is not tied to any single commercial entity.
 - **Subtitle:** *Beyond Static Code Audit: Multi-Step Exploitation Against Randomised, Defended Targets.*
@@ -714,12 +714,12 @@ The token format being publicly known does not weaken contamination resistance, 
 
 ## WSTG coverage
 
-- WSTG v4.2 has 97 individual tests across 12 categories
-- Running real infrastructure per class via Docker removes the platform-specific constraints that limited earlier scoping. RDBMS-dialect-specific SQLi (Postgres / MySQL / Oracle / MSSQL), LDAP injection, IMAP/SMTP injection, OS-level command injection, LFI/RFI, weak TLS / cipher downgrade, HTTP request smuggling (when a permissive reverse proxy is included in the class template) — all viable when the class template provisions the right backing service
-- Network-infrastructure tests (CONF-01) remain out of scope by design — the benchmark is application-layer
-- **Estimate: ~95 of 97 WSTG classes viable in v1.** The residual 2 are non-application-layer or require physical network infrastructure changes
-- Out-of-scope classes documented in appendix with rationale
-- A v1 release does not need to ship all ~95 classes simultaneously — the initial published cohort is a focused subset chosen for empirical breadth (see Implementation roadmap). Subsequent releases add the remainder.
+- WSTG v4.2 has ~98 individual tests across 12 categories (the precise count is approximate because section 4.7.5's SQL-dialect sub-atomics are counted at varying granularities in the literature)
+- **v1.0 ships 85 atomics built**, with 6 of 12 categories complete: 4.1 Information Gathering (10/10), 4.3 Identity Management (5/5), 4.5 Authorization (4/4), 4.8 Error Handling (1/1), 4.10 Business Logic (9/9), 4.12 API (1/1)
+- Running real infrastructure per class via Docker removes the platform-specific constraints that limited earlier scoping. RDBMS-dialect-specific SQLi (Postgres / MySQL / SQLite via polyglot variant), LDAP injection, IMAP/SMTP injection, OS-level command injection, LFI/RFI, HTTP response splitting via raw-socket bytes (when the class bypasses Node's CRLF hardening), Sequelize-DSL injection, NoSQL operator injection — all viable when the class template provisions the right backing service
+- **5 atomics out of scope by design** (network-layer adversary capability is a distinct research dimension): 4.2.7 HSTS, 4.6.9 Session Hijacking, 4.9.1 Weak TLS rely on a network-position attacker the framework's single-actor flag-recovery model cannot simulate; 4.6.7 Session Timeout and 4.6.11 Concurrent Sessions collapse functionally into 4.6.4 Exposed Session Variables and 4.6.6 Logout respectively. Per-atomic rationale in `docs/wstg-coverage.md`
+- The remaining ~8 unbuilt atomics are either documented skips (Flash EOL, clickjacking without victim context) or borderline shapes that revisit in v1.1
+- A v1 release does not need to be exhaustive — 6 of 12 categories complete plus deep coverage of the rest is enough for the empirical claim to land. Subsequent releases close the residual atomics.
 
 ---
 
@@ -864,6 +864,8 @@ Markers: `*` = T0==T1 (no applicable WAF rules — don't misread as "robust to d
 
 ## Repo shape (target)
 
+The block below is the target / aspirational layout. The currently shipped repo diverges in three places: defence rules live alongside the runtime at `runtime/defences/` plus per-class `classes/<x>/defences.mjs` rather than a top-level `defences/`; per-class Dockerfiles live at `classes/<x>/infra/Dockerfile` rather than a centralised `infra/`; the LLM-driven generator is consolidated into `generator/` matching the listed shape. The polyrange CLI is exercised today via `node generator/deploy.mjs` rather than a packaged `bin/polyrange` — packaging is a v1.1 follow-up that does not block the framework's contribution.
+
 ```
 polyrange/
   classes/                       ← one directory per WSTG class
@@ -958,7 +960,9 @@ The framework is the methodological contribution; producing the empirical number
 
 I am direct that scaled evaluation of the framework's full class set is not a single-researcher budget. The comparable cyber-AI evaluation work in this space — Berkeley's CyberGym reference runs, XBOW's validation runs, Epoch AI's FrontierMath grading — was produced under institutional backing of one form or another (university infrastructure, vendor self-funding, research-organisation grant funding). Frontier-capability evaluation is institutional-scale work; PolyRange's empirical results are no exception. A publishable run depends on partnership with a frontier lab providing API budget and model access, an AI safety institute commissioning the run as part of a frontier evaluation programme, or research-grant support to the author for an independent run. I am open to all three paths and will pursue whichever materialises first; a paper presenting the full evaluation, with confidence intervals at publishable N, will follow whichever partnership closes.
 
-The framework's contribution does not depend on the original author having produced the full evaluation. Any actor with appropriate resources can produce contamination-resistant numbers using the methodology and infrastructure shipped here, on any model under test, against any subset of the class catalogue. Capability-smoke runs at smaller N — N=20 to N=30 per cell on a single model — are reachable under a research-lab budget; the resulting confidence intervals are wider than publication thresholds (±0.13 to ±0.18 at the binomial Wilson estimator) but tight enough to characterise relative model capability for internal evaluation purposes. The contribution is the contamination-resistant methodology and the executable benchmark infrastructure that operationalises it; the orders-of-magnitude proportional value over the static-benchmark status quo holds regardless of which institution runs the published evaluation.
+The framework's contribution does not depend on the original author having produced the full evaluation. Any actor with appropriate resources can produce contamination-resistant numbers using the methodology and infrastructure shipped here, on any model under test, against any subset of the class catalogue. Capability-smoke runs at smaller N — N=20 to N=30 per cell on a single model — are reachable under a research-lab budget; the resulting per-cell confidence intervals are wider than publication thresholds (±0.13 to ±0.18 at the binomial Wilson estimator) but tight enough to characterise relative model capability for internal evaluation purposes. The contribution is the contamination-resistant methodology and the executable benchmark infrastructure that operationalises it; the orders-of-magnitude proportional value over the static-benchmark status quo holds regardless of which institution runs the published evaluation.
+
+A note on aggregate-versus-per-cell claims at low N. The pre-registered hypotheses in this paper (the defence gap, discovery gap, and stealth gap) are aggregate within-model claims across the protocol's full cell catalogue. Aggregate solve rates across 170 cells (85 classes × 2 tiers) carry a 95% Wilson confidence interval of approximately ±0.04 per model at N=1 fresh-draw, because the unique-instances axis substitutes for per-cell repetition. This is structurally analogous to the pass@1 single-attempt convention used by SWE-bench, where the per-task results are also single samples and aggregate statistical power comes from the task count rather than per-task repetition. The N=1 fresh-draw capability smoke I publish as the framework's first visible artifact will therefore claim only what is statistically supported at that N: aggregate model-vs-model solve rate, aggregate within-model defence gap, and aggregate within-model discovery-mode gap, each with confidence intervals. Per-cell capability claims — that any specific model performs differently on any specific class — require N ≥ 30 per cell for ±0.15 confidence intervals and N ≥ 100 for ±0.08, both of which depend on the partnership-funded run discussed above. The capability smoke makes the aggregate claim and shows the per-cell table for transparency only; the per-cell capability claims follow when the publishable-N run lands.
 
 ### Position
 
@@ -1016,24 +1020,31 @@ I anticipate engagement with UK AISI, Korea AISI, US AISI, and the AI safety res
 
 ## What gets us → publishable v1
 
-1. Decide: AI-generated defences or static? (see open questions)
-2. Build reference IDOR challenge end-to-end (spec → adapter → defence → grader)
-3. Wire LLM generation for surface manifest (one challenge), provider-agnostic so researchers can swap in their own model endpoint
-4. Build deploy + grade CLI minimum
-5. Run bare-vs-harness against frontier models, capture randomisation + defence + harness gap numbers
-6. Finalise paper, add empirical section, submit to arXiv
-7. Public announcement coordinated with: GitHub release, blog, X thread, outbound to Cloudflare / UK AISI / Anthropic CVP contacts
+Done:
+1. Defences decision: static structure (T0 / T1 tiers with class-local conditional logic plus a signature WAF tier), no AI-generated defences.
+2. Reference classes built end-to-end across all 6 complete categories and 85 atomics total — IDOR, reflected and stored XSS, SQLi (polyglot across SQLite / Postgres / MySQL), command injection, SSRF, LFI, CSRF-equivalents, and 75+ more. Per-class infra-template pattern proven across stateless Node, Postgres-backed, polyglot-backend, raw-socket-byte-writing, and browser-oracle-required class shapes.
+3. LLM generation wired provider-agnostic via `generator/call-llm.mjs`; theme, scenario, chrome, decoys, and 404 all LLM-generated per deploy.
+4. Deploy + grade CLI minimum: `node generator/deploy.mjs --class=X --target=fly|local-docker --tier=N [--ephemeral]`. Validator runs end-to-end on every deploy (canonical exploit fires, discovery reachable, negative control passes) before the deploy is marked ✓.
+
+In flight:
+5. Capability-smoke run: N=1 head-to-head between two frontier models (Opus-class + GPT-class) against the full T0 + T1 class set, scoped for blog-post publication. Produces relative-capability orientation, not publishable-N confidence intervals.
+
+Remaining:
+6. Publishable-N empirical run (requires institutional backing per the Limitations subsection).
+7. Paper finalisation, arXiv submission, public announcement.
 
 ---
 
 ## Open questions (need calls)
 
-1. **AI-generated defences per deploy, or static?** Static = lower risk of broken defences, simpler v1. AI-generated = stronger contamination claim, more genuine novelty, harder to guarantee validity. Lean: hybrid — static *structure*, AI-generated *content within constraints*.
-2. **Repo name** — `frontier-cyber-bench`, `polyrange`, `polyrange`? Name should encode thesis (drift = surfaces drift per deploy). Lean: `polyrange`.
-3. **Reference challenge class for v1.0** — IDOR is the cleanest first target (universal, clear success criterion, low infra). Confirm.
-4. **CrowdStrike engagement timing** — pursue research-partnership conversation now (so v2 endpoint extension lands with their brand on it), or wait until v1 lands and use it as leverage? Lean: introduce after v1 ships, with the v2 roadmap as the ask.
-5. **Empirical run target list** — Claude Opus 4.7, GPT-5.5, Mythos Preview (if I can get access). Open-source baseline (Llama 3.3 70B). Anything else?
-6. **Disclosure / coordination with labs before publication** — pre-brief Anthropic CVP contacts on results? UK AISI / Korea AISI? Lean: yes, 1-2 weeks ahead so they're not blindsided and may publicly engage.
+Resolved:
+- AI-generated defences vs static — resolved as static (T0 / T1 with class-local conditional logic).
+- Repo name — resolved as `polyrange`.
+- Reference v1.0 class — IDOR was the proven first target; the pattern generalised to all 85 shipped classes.
+
+Still open:
+1. **Empirical run target list (publishable-N)** — frontier-model panel anchors the initial capability-smoke. Open-source baseline (Llama 3.3 70B class) and AISI evaluation models worth adding once pending research funding closes.
+
 
 ---
 
@@ -1047,7 +1058,7 @@ I anticipate engagement with UK AISI, Korea AISI, US AISI, and the AI safety res
 
 
 
-Token burn for empirical runs is paid for out of personal / consulting capacity. No corporate funding dependency.
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
