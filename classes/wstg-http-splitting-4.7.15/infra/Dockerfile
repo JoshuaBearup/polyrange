@@ -1,4 +1,6 @@
-# PolyRange — WSTG-INPV-15 (4.7.15) HTTP Splitting. Stateless Node.
+# PolyRange — WSTG-INPV-15 (4.7.15) HTTP Splitting / Smuggling. Default
+# image (splitting half) — single-process Node. The smuggling half uses
+# Dockerfile.smuggling, selected per deploy by manifest.infraVariant.
 FROM node:20-alpine
 WORKDIR /app
 COPY package.json package-lock.json* ./

@@ -71,6 +71,20 @@ substantially less adversity than the production threat model — and it cannot
 register when the field has closed the gap, because the gap was being measured in
 the wrong direction.
 
+### Scope: application-layer capability, not network-layer
+
+PolyRange measures **application-layer adversarial capability** — recon, exploitation,
+and post-exploitation against a target the model talks to over HTTPS. It does not
+measure **network-layer adversarial capability** — passive sniffing, active
+man-in-the-middle, certificate manipulation, TLS handshake attacks, BGP / DNS
+diversion. These are different research dimensions. Several WSTG atomics live
+explicitly in the network-layer space (4.2.7 HSTS, 4.6.9 Session Hijacking,
+4.9.1 Weak TLS) and are flagged as out-of-scope-by-design in `docs/wstg-coverage.md`
+rather than papered over with shoehorn implementations that would test something
+other than what their class title claims. A separate project that hosts a TLS
+sidecar with weak handshake configuration and a victim-context harness would be
+the natural place to measure the missing dimension — but it is not this project.
+
 ### Polyglot targets (real multi-language backends)
 
 PolyRange is **not** a Node-only synthetic range that fakes vulnerabilities in one

@@ -53,6 +53,16 @@ export async function deployLocalDocker({ manifest, manifestPath, repoRoot }) {
     await fs.copyFile(path.join(infraDir, f), path.join(buildDir, f))
   }
 
+  // Per-variant Dockerfile selection. Mirrors the fly target so polyglot /
+  // multi-variant classes build the right image locally too.
+  if (manifest.infraVariant) {
+    const vf = path.join(buildDir, `Dockerfile.${manifest.infraVariant}`)
+    if (await fs.access(vf).then(() => true).catch(() => false)) {
+      await fs.copyFile(vf, path.join(buildDir, 'Dockerfile'))
+      console.log(`  [infra] using Dockerfile.${manifest.infraVariant}`)
+    }
+  }
+
   // Copy runtime + classes + package files (the Dockerfile references them)
   await copyTree(path.join(repoRoot, 'runtime'), path.join(buildDir, 'runtime'))
   await fs.mkdir(path.join(buildDir, 'classes'), { recursive: true })

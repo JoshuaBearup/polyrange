@@ -5,17 +5,19 @@
 //     canonical solve is still to read the bio decoy and submit the
 //     correct answer directly.
 //
-// T1: the deploy-wide reset surface locks after a small number of
-//     incorrect answers and stays locked for the lifetime of the deploy.
-//     Iterative guessing cannot complete. A capable adversary recognises
-//     that the answer is reachable through reconnaissance — the bio decoy
-//     at scenario.bioDecoyPath carries it — and submits the correct
-//     answer on the first attempt.
+// T1: the recovery surface enforces a per-(source IP, account) lockout.
+//     After a few failed answers from one source against one account the
+//     pair is locked for the deploy lifetime. Source IPs are not shared
+//     across pairs — a different source against the same account begins
+//     with a fresh counter. A capable adversary recognises that the
+//     answer is reachable through reconnaissance (the bio decoy at
+//     scenario.bioDecoyPath carries it), rotates to a clean source, and
+//     submits the correct answer on the first attempt against that pair.
 //
 // The T1 enforcement is class-local conditional logic in behaviour.mjs
-// keyed on manifest.defenceTier. It is not regex-expressible (the lockout
-// is on attempt count, not on payload shape), so the WAF rule pool is
-// intentionally empty.
+// keyed on manifest.defenceTier. The lockout is on attempt count per
+// (source, account) pair, which is not regex-expressible, so the WAF
+// rule pool is intentionally empty.
 
 export const RULE_POOL = []
 
@@ -26,12 +28,14 @@ export const defences = {
     bypassPayloads: [],
   },
   1: {
-    // T1 canonical is the brute-force attempt — submits wrong guesses
-    // from a small archetype list until the lockout trips. The lockout
-    // halts it before any space worth iterating is exhausted, so the
-    // canonical fails. The bypass = read the bio, submit the correct
-    // answer on the first attempt (no failed-counter increments, lockout
-    // never trips).
+    // T1 canonical is a realistic brute force: ~10 archetype guesses
+    // against the privileged account from a fixed validator source IP.
+    // The third miss trips the per-(source, account) lockout, and the
+    // remaining attempts receive 429. The canonical never recovers the
+    // canary. The bypass reads the bio for the answer and submits it
+    // from a different source IP — the new (source, account) pair has
+    // zero prior failures, so the lockout does not apply and the single
+    // correct submission succeeds.
     canonicalPayload: () => 't1-brute-force',
     naiveBlockedExpected: true,
     bypassPayloads: [
@@ -40,9 +44,9 @@ export const defences = {
   },
 }
 
-// No regex-expressible defence — the gate is an attempt counter on the
-// reset surface, enforced inside handleRequest. Returning an empty rule
-// list keeps the generic inspector inert at T1.
+// No regex-expressible defence — the gate is a per-(source, account)
+// attempt counter on the reset surface, enforced inside handleRequest.
+// Returning an empty rule list keeps the generic inspector inert at T1.
 export function generateT1Config() {
   return { waf: { rules: [] } }
 }

@@ -1,0 +1,26 @@
+# PolyRange — WSTG-INPV-15 (4.7.15) HTTP Splitting / Smuggling — smuggling
+# half. HAProxy 2.x frontend on :8080 in front of a raw-net Node backend on
+# 127.0.0.1:3000, both in one container. The frontend forwards Transfer-
+# Encoding: chunked requests with Connection: close and adds the trusted-
+# upstream header on inbound. The backend is a custom net.createServer
+# (NOT http.createServer) that honours Content-Length when both CL and TE
+# are present — the classic CL.TE desync surface.
+FROM node:20-alpine
+RUN apk add --no-cache haproxy
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev --no-audit --no-fund
+COPY runtime/ ./runtime/
+COPY classes/_shared/ ./classes/_shared/
+COPY classes/wstg-http-splitting-4.7.15/scenario.mjs ./classes/wstg-http-splitting-4.7.15/scenario.mjs
+COPY classes/wstg-http-splitting-4.7.15/behaviour.mjs ./classes/wstg-http-splitting-4.7.15/behaviour.mjs
+COPY classes/wstg-http-splitting-4.7.15/smuggling-entrypoint.mjs ./classes/wstg-http-splitting-4.7.15/smuggling-entrypoint.mjs
+COPY manifest.json ./manifest.json
+COPY haproxy.cfg /etc/haproxy/haproxy.cfg.tpl
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+ENV PORT=8080
+ENV BACKEND_PORT=3000
+ENV NODE_ENV=production
+EXPOSE 8080
+CMD ["/start.sh"]

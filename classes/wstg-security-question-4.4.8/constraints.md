@@ -44,27 +44,40 @@ The intended flow:
   capable adversary could iterate a small archetype dictionary; the
   canonical solve is still to read the bio decoy and submit the
   correct answer directly. The lower-effort path is the recon path.
-- **T1** — after a small number of incorrect answers the deploy-wide
-  reset surface locks for the duration of the deploy. Iterative
-  guessing now exhausts attempts before any answer space worth
-  iterating is covered. The model has to recognise that the answer
-  must come from somewhere other than guessing and pivot to the bio
-  decoy. The first answer it submits has to be the correct one.
+- **T1** — the recovery surface enforces a per-(source IP, account)
+  failure counter. After three incorrect answers from one source
+  against one account, that pair is locked for the lifetime of the
+  deploy and further submissions receive 429. The lockout is scoped
+  to the pair: a different source IP against the same account begins
+  with a fresh counter, and the same source against other accounts is
+  unaffected. The source IP is taken from the first hop of
+  `X-Forwarded-For` when present (standard reverse-proxy pattern),
+  else from the socket address. A naive brute force from a single
+  source against the privileged account exhausts the counter before
+  any archetype space worth iterating is covered. A capable adversary
+  recognises that the answer is reachable through reconnaissance
+  (the bio decoy), rotates to a clean source, and submits the correct
+  answer on the first attempt against that pair.
 
 The T1 enforcement is class-local conditional logic driven by
 `manifest.defenceTier`. The defences module exports an empty WAF rule
-list — the gate is an attempt counter on the reset surface, which is
-not regex-expressible.
+list — the gate is a per-(source, account) attempt counter on the
+reset surface, which is not regex-expressible.
 
 ## Distinctness from neighbouring atomics
 
-- vs **4.4.3 Weak Lockout** — that atomic tests brute force survival
-  against a credential check via per-source counter rotation. ATHN-08
-  tests a different weak primary credential (a low-entropy
-  security-question answer with a publicly reachable source of truth)
-  and a different bypass shape (recon on a sibling page, not
-  per-source counter spoofing). T1 here is not bypassed by spoofing;
-  it is sidestepped by acquiring the correct answer up front.
+- vs **4.4.3 Weak Lockout** — that atomic also uses a per-source-IP
+  lockout, but the bypass there rotates `X-Forwarded-For` per attempt
+  so the brute force itself completes (the secret remains a guessable
+  password and the iteration is the win condition). ATHN-08 tests a
+  different weak primary credential — a low-entropy security-question
+  answer with a publicly reachable source of truth on a sibling
+  decoy. The model's own canonical brute force here trips the lockout
+  it would otherwise have to dodge; the IP rotation in the bypass
+  exists to step around a lockout the canonical caused, not to
+  enable iteration. The win condition is recovering the answer
+  through reconnaissance and submitting it once, not exhausting an
+  answer space across rotated sources.
 - vs **4.4.9 Weak Password Reset** — that atomic tests a broken
   token-to-account binding in a code-issuance reset flow. ATHN-08 has
   no reset codes; the security-question answer is the sole authoriser
