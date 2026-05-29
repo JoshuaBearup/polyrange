@@ -550,8 +550,8 @@ The existing benchmark landscape is shaped around what frontier models do well: 
 
 - Each scenario deploys as a Docker compose application — typically the generated web app plus any backing services the vulnerability class requires (Postgres for SQLi, a Linux base for command injection, an internal HTTP service for SSRF, etc.)
 - Hand-authored compose templates per class (not LLM-generated infrastructure) — the LLM generates the *app code, schema, seed data, theme, surface, decoys* that go inside the containers; the infra spec is bounded, tested, and safe
-- Default target: **Fly.io.** Researcher runs `polyrange deploy --class=X` and gets a unique `https://<app-name>.fly.dev` URL out of the box with HTTPS, multi-region support, and free-tier-friendly pricing for individual evaluation runs
-- Alternative target: **local Docker.** `polyrange deploy --target=local-docker` brings the app up on `http://localhost:<port>` — ideal for offline or air-gapped researchers
+- Default target: **Fly.io.** Researcher runs `node generator/deploy.mjs --class=X --target=fly` and gets a unique `https://<app-name>.fly.dev` URL out of the box with HTTPS, multi-region support, and free-tier-friendly pricing for individual evaluation runs. A packaged CLI (`polyrange deploy ...`) is a v1.1 follow-up; the framework's contribution does not depend on the packaging.
+- Alternative target: **local Docker.** `node generator/deploy.mjs --class=X --target=local-docker` brings the app up on `http://localhost:<port>` — ideal for offline or air-gapped researchers
 - Additional targets supported as plugins: Railway, Render, GCP Cloud Run, AWS App Runner (researchers use whichever they have an account with)
 - State (where the class needs it) is real database state in the container, not synthetic — no HMAC-signed cookies as a substitute for persistent state, because there is real persistent state
 
@@ -750,12 +750,12 @@ Defences are static (hand-written per class), not AI-generated. The decision was
 - **End-to-end exploit validation** in the deploy pipeline — every deploy spins up the actual runtime and fires the canonical exploit through real HTTP before being marked ✓
 - **Decoy-anti-vuln validation pipeline** — vuln-class scanner pass on every generated decoy before deploy
 - Cloudflare 1020 / nginx / Express literal-reproduction error pages for defence block responses and edge errors
-- **`polyrange deploy --class=X --target=fly|local-docker`** CLI
-- **`polyrange grade`** CLI (against deployed instance, with model under test)
-- Manifest hashing for reproducibility
+- **Deploy entrypoint** — `node generator/deploy.mjs --class=X --target=fly|local-docker --tier=N [--ephemeral]`. Runs the full pipeline: theme generation, scenario generation, chrome and decoys, Docker build via Fly's remote builder, deploy, validator (canonical exploit fires, discovery reachable, negative control), and optional teardown.
+- **Grade-equivalent** — the validator is built into the deploy pipeline today; the deploy succeeds only when the canary is recovered by the canonical exploit and the negative control fails to recover it. A standalone `polyrange grade` CLI that runs an external model under test against a deployed instance is v1.1 work (see Stage 2 in north-star.md).
+- Manifest hashing for reproducibility (per-tier manifest filename `manifest.<classId>.t<tier>.json`)
 - README + paper draft
 
-#### Eval report shape (target exemplar — what `polyrange grade` produces)
+#### Eval report shape (target exemplar — what the Stage 2 aggregator + report renderer will produce)
 
 Locked so we don't drift later when the empirical run actually happens. Mirror of `docs/north-star.md` §4 "Report shape" — kept here too because the paper's Evaluation Protocol section illustrates against this exact layout.
 
@@ -1019,7 +1019,7 @@ Benchmark cohorts can be published encrypted, with decryption keys released on a
 
 ### Coordination with safety institutes
 
-I anticipate engagement with UK AISI, Korea AISI, US AISI, and the AI safety research arms of the major frontier labs around the methodology and its results. Coordination ahead of publication allows for parallel internal evaluation against the same methodology, and creates the conditions for the benchmark to be cited in policy and safety contexts rather than only academic ones. I view this as orthogonal to a consortium-governance model — PolyRange remains independently authored and maintained — but actively seek collaborative engagement on results interpretation and methodology refinement.
+I anticipate engagement with AI safety institutes and the AI safety research arms of frontier labs around the methodology and its results. Coordination ahead of publication allows for parallel internal evaluation against the same methodology, and creates the conditions for the benchmark to be cited in policy and safety contexts rather than only academic ones. I view this as orthogonal to a consortium-governance model — PolyRange remains independently authored and maintained — but actively seek collaborative engagement on results interpretation and methodology refinement.
 
 ---
 
