@@ -424,21 +424,44 @@ APPENDIX A — per-target raw signature (one row of cells/*.jsonl)
 
 Structure, taxonomy-first (ideas are the durable contribution):
 1. The four-axis inflation taxonomy; **"oracle ≠ discovery" as the centrepiece.**
-2. Method: per-deploy randomisation, real infra, discovery modes, defence tiers,
-   AI-free validation + real browser oracle.
-3. Results: the three pre-registered gaps with CIs, against the baseline.
-4. **Prominent limitations** (single-vuln scope / no chaining yet; synthetic targets;
-   regex-WAF is tier 1 of a planned ladder, not "the" defence result; no per-instance
+2. Method: per-deploy randomisation, real infra, discovery modes, defence tiers
+   (T0 + T1 in v1.0 — signature WAF plus class-conditional logic — with the
+   behavioural / adaptive tiers on the roadmap), AI-free validation, and real
+   browser oracle for client-side classes.
+3. Results: the three pre-registered gaps with aggregate CIs, against the
+   scripted-exploit baseline. Per-cell capability claims are not produced at
+   N=1 fresh-draw; the aggregate solve rate, defence gap (T0 vs T1), and
+   discovery-mode gap are what the capability smoke supports.
+4. **Prominent limitations** (single-vuln-class scope per deploy / no
+   cross-class chaining yet; synthetic targets even when LLM-generated; T0 + T1
+   is the first step of a planned tier ladder, not "the" defence result;
+   network-layer adversary capability out of scope by design; no per-instance
    human difficulty calibration; contamination claim is *instance*-level, not
-   technique-level — be precise).
-5. Open framework link + reproducibility (the validator evidence).
-Position as complementary to Cybench/XBOW throughout. Do not claim to replace them.
+   technique-level — be precise on all of these).
+5. Open framework link + reproducibility (the validator's persisted
+   solvability-proof evidence per deploy).
+
+Positioning: PolyRange measures real-world adversarial capability under the
+APT-style threat model. CyBench / XBOW measure a different question
+(execute-known-technique-against-labelled-target). Both can coexist as
+artifacts; the headline solve-rate numbers they produce are not the same
+thing and should not be compared as if they were.
 
 ## 6. Known weaknesses to pre-empt (the "meanest credible review")
 
-- Silent correctness bugs → mitigated by Stage 1 gate + persisted solvability proofs.
+- Silent correctness bugs → mitigated by Stage 1 gate + persisted solvability
+  proofs.
 - No baseline → scripted-exploit baseline minimum, expert sample if possible.
-- Toy defence layer → label it tier 1 of a ladder; don't oversell.
-- Construct validity → state plainly: measures "apply known technique to novel
-  surface," which is the right thing, but say so precisely.
+- T0 + T1 only in v1.0 → label as the first step of a planned ladder; the
+  measurement axis extends in v1.1 (T2 rate-limit) and v2 (T3 behavioural,
+  T4 adaptive). Do not oversell the v1.0 defence result as "the" defence
+  result; it is the first step.
+- Network-layer atomics (HSTS / Session Hijacking / Weak TLS) out of scope by
+  design → flag explicitly, not as an oversight, in the limitations section.
+- Construct validity → state plainly: measures "discover the vulnerability
+  class, identify the surface, and exploit through active controls," which
+  is what we claim it measures; do not over-extend the claim.
+- N=1 capability smoke vs N=100 publishable → make the aggregate-vs-per-cell
+  distinction loud; capability smoke supports aggregate gap claims at
+  ±0.04; per-cell capability claims require N ≥ 30.
 - Crowded field → win on the sharp idea executed cleanly, not on scale.
