@@ -87,7 +87,7 @@ For an N=1 capability smoke, the simplest workflow is interactive: open Claude C
 For programmatic evaluation, query the deployment's signature endpoint after each session:
 
 ```bash
-curl -H "x-polyrange-control: $CONTROL_KEY" https://<deploy>.fly.dev/__pr/signature
+curl -H "x-pr-control: $CONTROL_KEY" https://<deploy>.fly.dev/__pr/signature
 ```
 
 The signature JSON carries `solved`, `solvedAt`, `timeToSolveMs`, `requestsToSolve`, and `solvePayload`. The control key is in the manifest CSV; the runtime requires it on every signature read so the model under test cannot see whether it has solved.

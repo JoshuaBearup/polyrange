@@ -1,0 +1,2 @@
+class_id,tier,status,app_name,url,canary,control_key,cost_usd,duration_s,deployed_at,error
+wstg-lfi-4.7.11.1,0,deployed,kiln-barley-mutual-150648,https://kiln-barley-mutual-150648.fly.dev,pr_deb85b98b78efc88da071cc9,87b07f90c1238b193296534fd8d8c77f38dd49994aa163c7,0.78,144.0,2026-05-29T22:00:00Z,
