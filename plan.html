@@ -480,7 +480,7 @@ Snapshot of the current top cyber-AI benchmarks as of 2026-05, ranked roughly by
 | 2 | CyberSecEval 1 / 2 / 3 (Meta) | Insecure code generation, attack helpfulness, prompt-injection susceptibility, MITRE alignment | Hundreds | De facto frontier-lab default eval |
 | 3 | NYU CTF Bench | CTF challenges across web / reversing / crypto / pwn / forensics | 200 | Most-cited open CTF benchmark prior to CyberGym |
 | 4 | Cybench (Stanford) | Agent benchmark with subtask decomposition over CTF problems | 40 | Subtask-decomposition design influenced others |
-| 5 | XBOW Validation Benchmarks | Web CTF challenges, Docker-containerised | 104 | Commercial vendor entry; canary-only contamination story |
+| 5 | XBOW Validation Benchmarks | Web CTF challenges, Docker-containerised; vulnerability class labelled in `benchmark.json` manifest | 104 | Real exploitation oracle (canary recovery); per-challenge manifest names the vuln class and adds tactical guidance; canary-only contamination story, half-life acknowledged elapsed by Waisman |
 | 6 | AutoPenBench | LLM penetration-testing agents over full workflows | Pen-test scenarios | One of few benchmarks targeting end-to-end pentest, not isolated vulns |
 | 7 | CyberMetric | RAG-based cybersecurity knowledge | Large multi-domain | Knowledge-only baseline paired with agentic benchmarks for triangulation |
 | 8 | WMDP (cyber subset) | Dual-use MCQ across bio / chem / cyber | Cyber subset | Default safety / unlearning eval cited in RSPs |
@@ -510,20 +510,23 @@ Why this matters: the current literature lets frontier models report headline nu
 
 | Dimension | Existing top 10 | PolyRange |
 |---|---|---|
-| Surface variation | Static (all) | Per-deployment randomised |
-| Defence tiers | None / undefended | T0–T4 progressive |
-| Self-hostable | Some (XBOW, NYU CTF) | Yes, by design |
-| Contamination resistance | Canary detection only | Architectural (surface + defence generation) |
-| Scope | Web CTFs / memory-safety / knowledge Q&A | Web (v1), extending to endpoint / identity |
+| Vulnerability class disclosure | Labelled in benchmark manifest (XBOW `name` / `description` / `tags`; CyBench task names) | Not disclosed — model identifies the class from the surface |
+| Surface variation | Static (all) | Per-deploy randomised: paths, parameters, scenario, decoys, theme |
+| Defence layer | None / undefended | T0 baseline + T1 active controls (class-conditional logic + signature WAF) |
+| Self-hostable | Some (XBOW, NYU CTF) | Yes, by design — researchers run their own deploys |
+| Contamination resistance | Canary detection only; XBOW's own team has acknowledged the contamination half-life has elapsed | Architectural — per-deploy fresh draw means there is nothing fixed to memorise |
+| Impact realism | Varies; commonly one-row vault | Populated environments — canary buried among ~25 themed decoy rows |
+| Scope | Web CTFs / memory-safety / knowledge Q&A | Web application-layer (v1), extending to endpoint / identity. Network-layer adversary capability is out of scope by design — that is a different research dimension. |
 
-Nothing in the current top 10 combines **deploy-time surface randomisation** with **progressive defence tiers**. That is the white space this work occupies.
+The existing benchmark landscape is shaped around what frontier models do well: recognise code patterns and recall one-shot CTF solutions. PolyRange measures the dimensions that matter for real-world adversarial capability — discovery of the vulnerability class, exploitation under active defences, recovery of impact-bearing artifacts from populated infrastructure — and is the only published artifact I am aware of that combines deploy-time surface randomisation with active defence tiers and a discovery axis that does not pre-disclose the vulnerability class. That is the position the framework occupies.
 
 **Closest comparables to engage in Related Work:**
 
-- **CyberGym** — scale leader, real-world vulnerability focus
-- **NYU CTF Bench** — shape comparison (CTF challenges, web-heavy)
-- **XBOW** — commercial-vendor equivalent in web-CTF space
-- **CyberSecEval** — de facto frontier-lab default eval
+- **XBOW Validation Benchmarks** — closest published artifact in the offensive-web-AI lane. Real exploitation oracle (Playwright canary recovery), but vulnerability class labelled in manifest, no defences, static instances, contamination half-life acknowledged elapsed.
+- **CyberGym** — scale leader, source-code vulnerability focus. Memory-safety bugs in OSS-Fuzz corpus. Different threat model (source access vs. unfamiliar production surface).
+- **Cybench (Stanford)** — broad CTF with subtask decomposition. Per-task objectives stated explicitly to the agent; not a discovery-axis test.
+- **NYU CTF Bench** — shape comparison (CTF challenges, web-heavy). Same pre-disclosed-target pattern as Cybench.
+- **CyberSecEval** — de facto frontier-lab default eval; covers refusal robustness and insecure-code generation, distinct measurement axis.
 
 **Citations:** CyberGym ([arXiv:2506.02548](https://arxiv.org/pdf/2506.02548)), CyberSecEval 2 ([arXiv:2404.13161](https://arxiv.org/pdf/2404.13161)), NYU CTF Bench ([arXiv:2406.05590](https://arxiv.org/pdf/2406.05590) · [project](https://nyu-llm-ctf.github.io/)), AutoPenBench ([arXiv:2410.03225](https://arxiv.org/pdf/2410.03225)), CyberMetric ([arXiv:2402.07688](https://arxiv.org/pdf/2402.07688)), [Purple Llama (Meta AI)](https://ai.meta.com/research/publications/purple-llama-cyberseceval-a-benchmark-for-evaluating-the-cybersecurity-risks-of-large-language-models/), HIDBench ([arXiv:2605.21773](https://arxiv.org/html/2605.21773)), [Top-8 LLM cyber benchmarks (Infosecurity Europe)](https://www.infosecurityeurope.com/en-gb/blog/future-thinking/top-8-llm-benchmarks-for-cybersecurity-practices.html).
 
@@ -700,15 +703,17 @@ The token format being publicly known does not weaken contamination resistance, 
 
 ## Defence tiers (web-only for v1)
 
-| Tier | Defence layer | Implementation | Tests for |
-|---|---|---|---|
-| 0 | Undefended | Direct request to the app container | Bare exploitation capability |
-| 1 | Signature-based WAF | Pattern-match against ~50-100 regex rules | Payload obfuscation, encoding |
-| 2 | Rate limit + bot signals | HMAC-signed session cookies + header consistency checks | Pace control, session distribution |
-| 3 | Behavioural anomaly detection | Stateless signal functions (entropy, header alignment, request shape) | Stealth, adaptive payload shaping |
-| 4 | Adaptive (per-deploy signal rotation) | Per-deploy seeded selection of N signals from a pool of M | Recon → infer → adapt → exploit |
+| Tier | Defence layer | Implementation | Tests for | v1.0 status |
+|---|---|---|---|---|
+| 0 | Undefended | Direct request to the app container | Bare exploitation capability | **Shipped** |
+| 1 | Signature-based WAF + class-conditional logic | Regex rule pool plus class-local conditional logic for non-regex-expressible defences (per-source-IP lockout, HMAC-signed cookies, debug-header allowlists, etc.) | Payload obfuscation, encoding, discovery of class-specific bypass paths | **Shipped** |
+| 2 | Rate limit + bot signals | HMAC-signed session cookies + header consistency checks | Pace control, session distribution | Roadmap (v1.1) |
+| 3 | Behavioural anomaly detection | Stateless signal functions (entropy, header alignment, request shape) | Stealth, adaptive payload shaping | Roadmap (v2) |
+| 4 | Adaptive (per-deploy signal rotation) | Per-deploy seeded selection of N signals from a pool of M | Recon → infer → adapt → exploit | Roadmap (v2+) |
 
-**Open question:** are defences themselves AI-generated per deploy, or hand-written static? See "open questions" below.
+v1.0 ships T0 and T1. The T1 mechanism is not purely a regex WAF — many WSTG atomics require class-conditional logic that a generic pattern matcher cannot express (lockout state on attempt counters, origin-header behavioural rules, HMAC verifier escalation, debug-header allowlists with intentional gaps). The defences module per class exports an empty `RULE_POOL` when the T1 mechanism is class-local, with the conditional implemented in the class's `handleRequest` and keyed on `manifest.defenceTier`. Documented per-class in each `constraints.md`.
+
+Defences are static (hand-written per class), not AI-generated. The decision was made in v1.0 to keep T1 validity tractable; AI-generated defences are a v2 research thread, not a v1 deliverable.
 
 ---
 

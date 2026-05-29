@@ -14,29 +14,48 @@ regenerating every instance per deploy on real backing infrastructure.
 
 ## 1. Positioning (vs the field)
 
-PolyRange is **not** competing on raw difficulty or breadth. Cybench (broad CTF
-difficulty, human-calibrated, multi-domain) and XBOW (real bug-bounty-validated,
-full autonomous-pentest scope, chaining) are stronger on those. PolyRange's
-contribution is **measurement validity** on a structured atomic checklist.
+PolyRange measures **real-world adversarial capability** — what a capable threat
+actor actually has to do against an unfamiliar production surface — not what a
+labelled-CTF or pre-disclosed benchmark hands a model. The closest published
+cyber-AI benchmarks (XBOW Validation Benchmarks, Cybench, NYU CTF) are useful
+artifacts for what they measure, but they make design choices that systematically
+move them away from the threat model PolyRange tries to measure under, and
+inflate the apparent capability they report.
 
-Concretely, contrast with a representative XBOW validation benchmark
-(XBEN-008-24, a blacklist-bypass reflected XSS):
+Concrete contrast with XBOW — the closest published artifact in the
+offensive-web-AI lane — taking XBEN-008-24 (a blacklist-bypass reflected XSS) as
+representative:
 
 | | XBOW XBEN-008 | PolyRange |
 |---|---|---|
-| Instance | one fixed, hand-authored app | regenerated per deploy (theme/surface/canary) |
-| Target | handed over (labelled "do XSS here") — pure oracle | discovered among decoys (discovery modes) |
-| Contamination | public on GitHub → in training corpora | nothing fixed to memorise |
-| Defence | none | tiered WAF (T0→T1…) |
-| Success oracle | **real headless browser** (PhantomJS confirms `alert` fired) | substring canary (server-side); **must add real-browser oracle for client-side** |
+| Instance | one fixed, hand-authored app | regenerated per deploy (theme / surface / canary) |
+| Target | handed over via `benchmark.json` `name` + `description` + `tags` fields | discovered through observation / fingerprint / lead / knowledge modes |
+| Contamination | public on GitHub — XBOW's own team has acknowledged the contamination half-life has elapsed | nothing fixed to memorise; per-deploy fresh draw |
+| Defence | none | tiered (T0 / T1) with class-conditional logic plus signature WAF |
+| Exploitation oracle | real headless browser (Playwright confirms execution) | matched — Playwright oracle for client-side, substring canary for server-side |
+| Realistic impact surface | varies per challenge | populated environments — canary in a credentials table among ~25 decoy rows, not a one-row vault |
 
-The honest read: XBOW already does **real client-side execution oracles**; PolyRange
-must match that for XSS/DOM classes (reflection ≠ execution). That requirement is
-folded into the correctness gate below — it is table stakes, not a nice-to-have.
+XBOW does some things well that PolyRange matches: real exploitation primitives
+(canary recovery, headless browser oracle) are the right shape and PolyRange has
+matched them. The headless-browser-oracle requirement specifically is folded into
+the Stage 1 correctness gate; it is table stakes, not a nice-to-have.
 
-Frame the paper as **complementary**: Cybench/XBOW tell you what models do on known
-targets; PolyRange tells you how much survives once the training-corpus advantage,
-the absent defence, and the handed-over target are taken away.
+XBOW does things that PolyRange deliberately does not: labelling the vulnerability
+class in the manifest, providing tactical guidance in a `description` field, machine-
+tagging the class for the agent to consume, omitting defences, and shipping a
+static instance set. Under the threat model PolyRange targets — what a capable
+adversary actually faces against an unfamiliar production surface — every one of
+those design choices removes a class of work the model would have to do under
+real conditions. The benchmark is useful for what it measures (can the model
+execute a known technique against a labelled target). It is not what PolyRange
+measures (can the model discover the vulnerability class, identify the surface,
+and exploit through active defences).
+
+PolyRange does not position as complementary. PolyRange measures what the
+field should be measuring — capability under real-world adversarial conditions —
+and the existing benchmarks measure a narrower question under more forgiving
+ones. Both can coexist as published artifacts; the headline solve-rate numbers
+they produce are not the same thing and should not be compared as if they were.
 
 ### Threat-model bar
 
