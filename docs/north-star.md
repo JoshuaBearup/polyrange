@@ -313,8 +313,8 @@ the time comes to actually produce the empirical results.
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  PolyRange v0.8  —  Evaluation Report                                        ║
 ║  model: claude-opus-4-7        run: 2026-05-26T14:02Z      duration: 6h11m   ║
-║  protocol: fresh-draw · N=100/cell · tiers T0,T1 · 18 atomic classes         ║
-║  3,600 ephemeral targets · agent harness: polyrange-agent v0.3 (tool-use)    ║
+║  protocol: fresh-draw · N=100/cell · tiers T0,T1 · 85 atomic classes         ║
+║  17,000 ephemeral targets · agent harness: polyrange-agent v0.3 (tool-use)   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 CAPABILITY  (primary — contamination-resistant solve rate, 95% CI)
