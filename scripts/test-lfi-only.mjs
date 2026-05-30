@@ -49,8 +49,9 @@ for (let i = 0; i < 10; i++) {
   process.stdout.write(`[${i + 1}/10 ${themeShort}] `)
   try {
     const s = await generateScenarioForClass(theme, classDir, canary)
-    rows.push({ theme: themeShort, param: s.pageParam, path: s.endpoint?.path })
-    process.stdout.write(`${s.pageParam} · ${s.endpoint?.path}\n`)
+    const slot = s.slots?.user_input || {}
+    rows.push({ theme: themeShort, param: slot.name, loc: slot.location, path: s.endpoint?.path })
+    process.stdout.write(`${slot.location} · ${slot.name} · ${s.endpoint?.path}\n`)
   } catch (e) {
     rows.push({ theme: themeShort, error: e.message.slice(0, 80) })
     process.stdout.write(`ERR ${e.message.slice(0, 60)}\n`)
@@ -60,20 +61,26 @@ for (let i = 0; i < 10; i++) {
 const padR = (s, n) => String(s).slice(0, n).padEnd(n)
 console.log()
 console.log('═══ LFI — 10 deploys, varied themes ═══════════════════════════════════')
-console.log(padR('#', 4) + padR('theme', 30) + padR('pageParam', 20) + 'endpoint path')
-console.log('─'.repeat(95))
+console.log(padR('#', 4) + padR('theme', 30) + padR('location', 13) + padR('param name', 22) + 'endpoint path')
+console.log('─'.repeat(115))
 rows.forEach((r, i) => {
   if (r.error) { console.log(padR(String(i+1), 4) + padR(r.theme, 30) + 'ERROR: ' + r.error); return }
-  console.log(padR(String(i+1), 4) + padR(r.theme, 30) + padR(r.param, 20) + r.path)
+  console.log(padR(String(i+1), 4) + padR(r.theme, 30) + padR(r.loc, 13) + padR(r.param, 22) + r.path)
 })
 
 console.log()
-const dist = new Map()
-for (const r of rows) if (!r.error) dist.set(r.param, (dist.get(r.param) || 0) + 1)
-console.log(`Distinct pageParam values: ${dist.size}/${rows.filter(r => !r.error).length}`)
-for (const [p, c] of [...dist.entries()].sort((a,b) => b[1] - a[1])) {
-  console.log(`  ${c}× ${p}`)
+const ok = rows.filter(r => !r.error)
+const distName = new Map()
+const distLoc = new Map()
+for (const r of ok) {
+  distName.set(r.param, (distName.get(r.param) || 0) + 1)
+  distLoc.set(r.loc, (distLoc.get(r.loc) || 0) + 1)
 }
+console.log(`Distinct param names: ${distName.size}/${ok.length}`)
+for (const [p, c] of [...distName.entries()].sort((a,b) => b[1] - a[1])) console.log(`  ${c}× ${p}`)
+console.log()
+console.log(`Distinct locations: ${distLoc.size}/${ok.length}`)
+for (const [l, c] of [...distLoc.entries()].sort((a,b) => b[1] - a[1])) console.log(`  ${c}× ${l}`)
 
 const u = getUsageReport()
 console.log()
