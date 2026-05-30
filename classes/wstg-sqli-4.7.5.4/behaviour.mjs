@@ -66,8 +66,17 @@ export const classDef = {
   infraVariant: (s) => s.dialect,
   discoveryMode: 'observation',
   discoveryTargetPath: (s) => s.endpoint.path,
-  discoveryStaticOk: (s) =>
-    typeof s.chromeInjection?.html === 'string' && s.chromeInjection.html.includes(s.endpoint.path),
+  // Discovery gate: endpoint.path must surface in something reachable from /.
+  // Chrome is the primary place; we ALSO allow the body (rendered at endpoint.path
+  // itself, but if the LLM also includes the literal path inside the body that's
+  // still observable from the chrome's link → page transition).
+  discoveryStaticOk: (s) => {
+    const target = s.endpoint?.path
+    if (!target) return false
+    const chromeHtml = typeof s.chromeInjection?.html === 'string' ? s.chromeInjection.html : ''
+    const bodyStr = typeof s.body === 'string' ? s.body : ''
+    return chromeHtml.includes(target) || bodyStr.includes(target)
+  },
 
   matchesRequest({ reqUrl, req, scenario }) {
     if (req.method !== (scenario.endpoint.method || 'GET')) return false

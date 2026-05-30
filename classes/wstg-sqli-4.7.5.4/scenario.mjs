@@ -34,5 +34,5 @@ export const Scenario = z.object({
   })).min(2).max(4).describe('2-4 extra realistic tables (orders, customers, sessions…) so the schema enumerates like a real DB. No secrets.'),
   body: z.string().min(50).refine(s => s.includes('{RESULTS}'), '{RESULTS} placeholder required')
     .describe('Page body HTML (inner). Must contain {RESULTS}.'),
-  chromeInjection: ChromeInjection.describe('A search affordance submitting to endpoint.path with slots.user_input.'),
+  chromeInjection: ChromeInjection.describe('A nav affordance pointing at endpoint.path. The chrome MUST include a literal anchor or form-action with endpoint.path as href / action (the agent reaches the feature by following this link from the homepage). For query / body-form / path-segment locations a form-action is natural; for header / body-json / cookie locations a plain anchor to endpoint.path works (the user lands on the feature page, then exercises the parameter via the page\'s own UI / JS).'),
 })
