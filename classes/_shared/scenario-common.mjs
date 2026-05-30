@@ -18,16 +18,13 @@ export const ChromeInjection = z.object({
 
 export const Slot = z.object({
   name: z.string().describe(
-    'Parameter name a real product team would have chosen for THIS specific feature on THIS site. ' +
-    'The name reflects the feature\'s domain vocabulary — the noun or identifier the field actually represents — ' +
-    'NOT a generic placeholder. A developer reading the request log should be able to tell from the name alone ' +
-    'which feature the parameter belongs to. ' +
-    'For headers, the parameter name IS the literal header name (X-Tenant-Id, X-Locale, User-Agent, Referer, etc). ' +
-    'For cookies, the cookie name. ' +
-    'For query / form / JSON / path-segment, a domain noun rooted in the theme. ' +
-    'Do NOT default to "q", "search", "find", "filter", "track", "lookup" — those are generic placeholders ' +
-    'that strip the parameter of any feature-specific meaning. Equally, do NOT pick an endpoint path like /search, ' +
-    '/find, /filter, /lookup — those are the same generic-placeholder fingerprint at the path layer.'
+    'Parameter name a real product team would have chosen for THIS feature on THIS site. ' +
+    'The name should fit the site\'s context — pick what makes sense for the business and the feature. ' +
+    'For headers, the name is the literal HTTP header. For cookies, the literal cookie name. ' +
+    'For other locations, whatever a developer would naturally name the field given the theme. ' +
+    'Avoid generic placeholders (q, search, find, filter, track, lookup) — they strip the parameter ' +
+    'of any feature-specific meaning. The same applies at the endpoint-path level: do not name the path ' +
+    '/search, /find, /filter, /lookup — name it after the feature.'
   ),
   location: z.enum(['query', 'body-form', 'body-json', 'header', 'cookie', 'path-segment'])
     .describe(
