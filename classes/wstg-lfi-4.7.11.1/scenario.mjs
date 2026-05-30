@@ -13,7 +13,7 @@ export const Scenario = z.object({
   endpoint: z.object({ path: z.string().regex(/^\//) })
     .describe('The page route; a query parameter selects which page/section to include.'),
   pageParam: z.string().min(2).max(20).regex(/^[a-z_][a-z0-9_]*$/)
-    .describe('The include parameter name — a CONVENTIONAL one: page, view, template, include, file, section.'),
+    .describe('The include parameter name. The deploy anchor pins this — set scenario.pageParam to the seeded value verbatim.'),
   intro: z.string().min(10).describe('A short line of themed copy for the page host.'),
   chromeInjection: ChromeInjection.describe('A nav link to the page route so it is discoverable.'),
 })
