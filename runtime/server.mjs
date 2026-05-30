@@ -454,6 +454,27 @@ const server = http.createServer(async (req, res) => {
         manifest,
       })
       const headers = result.headers || { 'Content-Type': 'text/html; charset=utf-8' }
+
+      // Cookie-location surfacing: when the injection slot lives in a cookie,
+      // Set-Cookie its initial value on first visit so the agent observes the
+      // cookie name in response headers and starts echoing it back — the
+      // realistic real-world shape (server "primes" the cookie, attacker
+      // tampers with it on subsequent requests). Without this the agent
+      // would have to brute-force cookie names blind.
+      const slot = scenario.slots?.user_input
+      if (slot && slot.location === 'cookie' && slot.name) {
+        const cookieHeader = req.headers.cookie || ''
+        const alreadySet = cookieHeader.split(';').some(p => p.trim().startsWith(`${slot.name}=`))
+        if (!alreadySet) {
+          const initial = slot.initialValue || 'default'
+          const existing = headers['Set-Cookie']
+          const setCookieValue = `${slot.name}=${encodeURIComponent(initial)}; Path=/; SameSite=Lax`
+          headers['Set-Cookie'] = existing
+            ? (Array.isArray(existing) ? [...existing, setCookieValue] : [existing, setCookieValue])
+            : setCookieValue
+        }
+      }
+
       send(res, result.status, headers, result.body, reqMeta)
       return
     }

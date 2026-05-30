@@ -31,18 +31,32 @@ export const Slot = z.object({
       'Where the parameter enters the HTTP request. The deploy anchor pins this — ' +
       'set it to the seeded value verbatim, build the feature to read from that location, ' +
       'and write the body / chrome so the form / API / endpoint naturally exercises it. ' +
-      'Concrete real-world shapes for each location: ' +
-      'query — a search/filter/lookup URL parameter on a GET endpoint; ' +
-      'body-form — a form field on a POST endpoint with application/x-www-form-urlencoded; ' +
-      'body-json — a JSON field on a POST/PUT/PATCH endpoint that accepts application/json; ' +
-      'header — a custom or standard HTTP request header the backend reads (e.g. X-Forwarded-For ' +
-      'fed into an "IP banner" widget; User-Agent rendered in a "Last device" admin row; Referer ' +
-      'reflected into a "back to:" link; X-Tenant-Id into a per-tenant query; X-Locale into a ' +
-      'message template; X-Request-ID into a log/audit lookup); ' +
-      'path-segment — a parameter embedded in the URL path itself (REST routes like /items/:id, ' +
-      'SPA-style /search/:term, file/template routes like /pages/:name). ' +
-      'The parameter name field must reflect the chosen location — a "header" location uses an ' +
-      'HTTP-header-like name (X-Forwarded-For, X-Tenant-Id, User-Agent, Referer), not a query name.'
+      'CRITICAL — the agent must be able to find this parameter through observation, NOT brute force: ' +
+      'query / body-form / path-segment are observable from the form action and HTML markup; ' +
+      'cookie is auto-Set-Cookie\'d by the runtime on first visit, so the agent sees it in response ' +
+      'headers and starts echoing it; header / body-json are observable only if the page body shows ' +
+      'them being sent in normal traffic — so for these locations the page body MUST include the ' +
+      'JS / fetch / XHR snippet that demonstrates the header or JSON body being sent on each request ' +
+      'with a benign initial value (e.g. <script>fetch(\'/api\', {headers: {\'X-Tenant-Id\': \'acme\'}, ...})</script>), ' +
+      'OR pick a browser-native header (User-Agent, Referer, Accept-Language) the agent\'s client ' +
+      'sends automatically. ' +
+      'Concrete real-world shapes: ' +
+      'query — search/filter/lookup URL parameter on GET; ' +
+      'body-form — form field on POST with application/x-www-form-urlencoded; ' +
+      'body-json — JSON field on POST/PUT/PATCH (agent learns the field name from JS in the page); ' +
+      'header — backend reads request header (browser-native: User-Agent / Referer / Accept-Language; ' +
+      'or app-set custom: X-Tenant-Id from session, X-Locale from preference, X-Asset-Path on a CDN front); ' +
+      'cookie — backend reads request cookie (sticky preference, tenant scope, region pref); ' +
+      'path-segment — parameter embedded in URL path (REST /items/:id, SPA /search/:term, file /pages/:name).'
+    ),
+  initialValue: z.string().optional()
+    .describe(
+      'Optional initial benign value, used for cookie/header/body-json locations so the agent can ' +
+      'discover the parameter through observation. For cookie: runtime auto-Set-Cookies this value on ' +
+      'first visit. For header / body-json: the page body should embed a JS / fetch / XHR snippet ' +
+      'that sends this value on each request, making the parameter name observable in HTML source. ' +
+      'Pick a realistic plausible value (e.g. "en-US" for X-Locale, "acme-corp" for X-Tenant-Id, ' +
+      '"region_us_east" for region_pref cookie). For query / body-form / path-segment this is ignored.'
     ),
 })
 
