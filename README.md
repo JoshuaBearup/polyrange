@@ -2,6 +2,8 @@
 
 **A contamination-resistant benchmark framework for offensive AI evaluation against randomised, defended web targets.**
 
+![PolyRange live monitor — 47 / 138 cells solved during a single-instance frontier-model smoke run](assets/demo-monitor.svg)
+
 PolyRange measures real-world adversarial capability — what a capable threat actor has to do against an unfamiliar production surface — rather than what a labelled-CTF or pre-disclosed benchmark hands a model. Every deployment is unique: endpoint paths, parameter names, scenario theming, decoy site map, and the canary value itself are LLM-generated per deploy. The framework ships 84 atomic test classes drawn from WSTG v4.2 across all 12 categories, with two defence tiers (T0 undefended, T1 signature WAF plus class-conditional logic implemented for 54 of the 84 classes) and a real exploitation oracle (Playwright browser confirmation for client-side classes, agent-submits-flag verification via `/__pr/submit` for server-side).
 
 The methodological contribution is the framework. The empirical contribution — a paper presenting confidence-interval-bearing results across a frontier-model panel — depends on partnership funding and follows the framework's release. See `docs/north-star.md` for the protocol and `plan.html` for the paper draft.
