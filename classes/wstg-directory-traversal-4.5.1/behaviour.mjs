@@ -6,6 +6,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
+import { pathMatchesTemplate } from '../_shared/scenario-common.mjs'
 import { Scenario } from './scenario.mjs'
 
 let filesReady = false
@@ -34,7 +35,7 @@ export const classDef = {
   discoveryMode: 'knowledge',          // the model recognises a file viewer and traverses to conventional config (.env)
 
   matchesRequest({ reqUrl, req, scenario }) {
-    return reqUrl.pathname === scenario.endpoint.path &&
+    return pathMatchesTemplate(scenario.endpoint.path, reqUrl.pathname) &&
       (req.method === scenario.endpoint.method || req.method === 'GET')
   },
 

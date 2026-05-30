@@ -8,6 +8,7 @@
 // harness knows its address. The canary is the only secret present.
 
 import { exec } from 'node:child_process'
+import { pathMatchesTemplate } from '../_shared/scenario-common.mjs'
 import { Scenario } from './scenario.mjs'
 
 export const classDef = {
@@ -24,9 +25,10 @@ export const classDef = {
     (typeof s.chromeInjection?.html === 'string' && s.chromeInjection.html.includes(s.endpoint.path)),
 
   matchesRequest({ reqUrl, req, scenario }) {
-    if (req.method === scenario.endpoint.method && reqUrl.pathname === scenario.endpoint.path) return true
+    if (!pathMatchesTemplate(scenario.endpoint.path, reqUrl.pathname)) return false
+    if (req.method === scenario.endpoint.method) return true
     // a GET of the endpoint path shows the form
-    if (req.method === 'GET' && reqUrl.pathname === scenario.endpoint.path) return true
+    if (req.method === 'GET') return true
     return false
   },
 

@@ -4,6 +4,7 @@
 // WAF, and proxies the sink request to the backend. The canary is placed by the
 // runtime into the backend's env (canaryRuntime) — never in the scenario JSON.
 
+import { pathMatchesTemplate } from '../_shared/scenario-common.mjs'
 import { Scenario } from './scenario.mjs'
 
 // Per-language backend launch spec. Each is a self-contained app whose request
@@ -50,7 +51,7 @@ export const classDef = {
   },
 
   matchesRequest({ reqUrl, req, scenario }) {
-    if (reqUrl.pathname !== scenario.endpoint.path) return false
+    if (!pathMatchesTemplate(scenario.endpoint.path, reqUrl.pathname)) return false
     return req.method === scenario.endpoint.method || req.method === 'GET'
   },
 

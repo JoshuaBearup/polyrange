@@ -7,6 +7,7 @@
 
 import dns from 'node:dns/promises'
 import net from 'node:net'
+import { pathMatchesTemplate } from '../_shared/scenario-common.mjs'
 import { Scenario } from './scenario.mjs'
 
 export const classDef = {
@@ -39,7 +40,7 @@ export const classDef = {
   },
 
   matchesRequest({ reqUrl, req, scenario }) {
-    if (reqUrl.pathname !== scenario.endpoint.path) return false
+    if (!pathMatchesTemplate(scenario.endpoint.path, reqUrl.pathname)) return false
     return req.method === scenario.endpoint.method || req.method === 'GET'
   },
 
