@@ -600,7 +600,7 @@ async function validateSolvability({ manifest, classDef, classDefences, deployme
   try {
     // Fire canonical (for stored XSS this also performs the store step)
     const canonical = await classDef.fireExploit({
-      baseUrl, scenario, payload: canonicalPayload, sessionCookie, helpers,
+      baseUrl, scenario, payload: canonicalPayload, perDeployCanary: canary, sessionCookie, helpers,
     })
     const canonicalFired = await succeeded(canonicalPayload, canonical)
 
@@ -613,7 +613,7 @@ async function validateSolvability({ manifest, classDef, classDefences, deployme
 
       for (let i = 0; i < bypassPayloads.length; i++) {
         const r = await classDef.fireExploit({
-          baseUrl, scenario, payload: bypassPayloads[i], sessionCookie, helpers,
+          baseUrl, scenario, payload: bypassPayloads[i], perDeployCanary: canary, sessionCookie, helpers,
         })
         if (await succeeded(bypassPayloads[i], r)) {
           console.log(`  ✓ bypass #${i + 1} succeeded${clientSide ? ' — script executed in browser' : ''} — puzzle solvable`)

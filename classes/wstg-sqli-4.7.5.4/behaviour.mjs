@@ -28,11 +28,14 @@ function getDb(scenario, canary) {
     for (const r of items) await d.run(`INSERT INTO ${scenario.itemsTable} (id, title, body) VALUES (${i++}, '${esc(r.fields.title)}', '${esc(r.fields.body)}')`)
 
     // Sensitive credentials table (~25 rows, canary buried at a random slot in a
-    // conventionally-named privileged account row).
+    // conventionally-named privileged account row). Filter canaryAccount out of
+    // the account pool so the canary row is the UNIQUE holder of that account —
+    // otherwise the blind oracle's WHERE account=… LIMIT 1 may select a decoy.
     await d.run('DROP TABLE IF EXISTS ' + scenario.sensitiveTable)
     await d.run(`CREATE TABLE ${scenario.sensitiveTable} (id INTEGER, account TEXT, secret TEXT)`)
+    const filteredAccountPool = scenario.accountPool.filter(a => a !== scenario.canaryAccount)
     const creds = synthesizeRecords({
-      pools: { account: scenario.accountPool, secret: scenario.secretPool },
+      pools: { account: filteredAccountPool, secret: scenario.secretPool },
       canaryFields: { account: scenario.canaryAccount, secret: canary },
       scheme: 'sequential-integer', count: 25,
     })
