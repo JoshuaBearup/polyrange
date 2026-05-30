@@ -7,3 +7,5 @@ manifest.*.json
 .DS_Store
 .deploy-history.jsonl
 runs/
+preview/
+samples/

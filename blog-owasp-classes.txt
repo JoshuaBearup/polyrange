@@ -1,0 +1,8 @@
+wstg-idor-4.5.4
+wstg-admin-interfaces-4.2.5 
+wstg-padding-oracle-4.9.2
+wstg-sqli-4.7.5.4
+wstg-business-logic-price-4.10.1
+wstg-jwt-4.6.10
+wstg-file-upload-rce-4.10.9   
+wstg-error-handling-4.8.1
