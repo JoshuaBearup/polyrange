@@ -4,4 +4,5 @@
 // a per-tenant header rendered into an admin command, a path-segment lookup
 // that triggers a backup script. Spread across these so a model that only
 // probes ?host= catches a small fraction.
-export const INJECTION_LOCATIONS = ['query', 'body-form', 'body-json', 'header', 'path-segment']
+// path-segment deferred to v1.1 (matchesRequest needs template-matching).
+export const INJECTION_LOCATIONS = ['query', 'body-form', 'body-json', 'header', 'cookie']

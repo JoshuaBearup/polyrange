@@ -4,4 +4,5 @@
 // (header), SPA-style URL segments reflected into titles (path-segment).
 //
 // body-json reflection is rare in classic reflected XSS — skip.
-export const INJECTION_LOCATIONS = ['query', 'body-form', 'header', 'path-segment']
+// path-segment deferred to v1.1 (matchesRequest needs template-matching).
+export const INJECTION_LOCATIONS = ['query', 'body-form', 'header']
