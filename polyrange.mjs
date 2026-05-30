@@ -14,7 +14,7 @@ import { spawn } from 'node:child_process'
 import { confirm } from '@inquirer/prompts'
 import { runPrecheck, renderPrecheck, tryFixInteractively, loadDotEnv } from './lib/precheck.mjs'
 import { runWizard } from './lib/wizard.mjs'
-import { runDeployScreen } from './lib/deploy-screen.mjs'
+import { runDeployScreen, renderFailureTriage } from './lib/deploy-screen.mjs'
 import { runHandoffScreen } from './lib/handoff-screen.mjs'
 import { runMonitor } from './lib/monitor.mjs'
 import { runReport } from './lib/report.mjs'
@@ -55,6 +55,7 @@ COMMANDS
 EXAMPLES
   node polyrange.mjs eval
   node polyrange.mjs eval --model=opus-4-8 --tier=0,1 --classes=all --run-id=blog-opus --yes
+  node polyrange.mjs eval --max-retries=3   # default 2; 0 disables retry
   node polyrange.mjs report --runs=runs/blog-opus,runs/blog-gpt5 --output=blog-report.txt
   node polyrange.mjs destroy --run-id=blog-opus
 `)
@@ -121,16 +122,31 @@ async function cmdEval() {
   if (!cfg) { console.log(colors.dim('  Cancelled.')); return }
 
   // 3) Deploy
+  const maxRetries = flags['max-retries'] !== undefined ? parseInt(flags['max-retries'], 10) : 2
   const deployResult = await runDeployScreen({
     repoRoot: REPO_ROOT,
     classes: cfg.classes,
     tiers: cfg.tiers,
     runId: cfg.runId,
     concurrency: cfg.concurrency,
+    maxRetries,
   })
+
+  // 3b) Triage: if any cells failed, show the categorised triage table.
+  if (deployResult.failures && deployResult.failures.length > 0) {
+    console.log()
+    console.log(renderFailureTriage(deployResult.failures, { partialOk: deployResult.deployed > 0 }))
+    console.log()
+  }
+
   if (deployResult.deployed === 0) {
-    console.log(colors.red('  No cells deployed successfully. Aborting.'))
+    console.log(colors.red('  No cells deployed successfully after retries.  Aborting.'))
+    console.log(colors.dim('  Per-deploy logs in runs/' + cfg.runId + '/deploys/'))
     return
+  }
+  if (deployResult.failed > 0) {
+    console.log(colors.yellow(`  Continuing with ${deployResult.deployed} successful cell(s); ${deployResult.failed} excluded.`))
+    console.log()
   }
 
   // 4) Hand-off prompt
@@ -194,13 +210,19 @@ async function cmdDeploy() {
   if (flags.yes) prefill.yes = true
   const cfg = await runWizard({ repoRoot: REPO_ROOT, prefill })
   if (!cfg) return
-  await runDeployScreen({
+  const maxRetries = flags['max-retries'] !== undefined ? parseInt(flags['max-retries'], 10) : 2
+  const deployResult = await runDeployScreen({
     repoRoot: REPO_ROOT,
     classes: cfg.classes,
     tiers: cfg.tiers,
     runId: cfg.runId,
     concurrency: cfg.concurrency,
+    maxRetries,
   })
+  if (deployResult.failures && deployResult.failures.length > 0) {
+    console.log()
+    console.log(renderFailureTriage(deployResult.failures, { partialOk: deployResult.deployed > 0 }))
+  }
 }
 
 async function cmdMonitor() {
