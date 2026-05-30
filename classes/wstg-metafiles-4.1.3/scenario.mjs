@@ -18,7 +18,20 @@ const DiscoverablePath = z.object({
 export const Scenario = z.object({
   featureLabel: z.string()
     .describe('Short description — e.g. "Internal staging area left in robots.txt", "Draft endpoints listed in sitemap"'),
-  leakageVector: z.enum(['robots-disallow', 'robots-allow', 'sitemap-xml', 'wellknown-security-txt'])
+  leakageVector: z.enum([
+    'robots-disallow',
+    'robots-allow',
+    'sitemap-xml',
+    'sitemap-index',
+    'humans-txt',
+    'wellknown-security-txt',
+    'wellknown-openid',
+    'wellknown-oauth-as',
+    'wellknown-apple-site-assoc',
+    'wellknown-assetlinks',
+    'wellknown-host-meta',
+    'wellknown-change-password',
+  ])
     .describe('Which metafile advertises the discoverable paths. The deploy anchor picks this — build the scenario around it.'),
   discoverablePaths: z.array(DiscoverablePath).min(3).max(7)
     .refine(ps => ps.filter(p => p.isCanaryPath).length === 1, 'exactly one path must be the canary path')
