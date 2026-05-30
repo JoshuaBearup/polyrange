@@ -521,6 +521,174 @@
     line-height: 1.55;
   }
 
+  /* Injection-position spread (per-deploy axis) */
+  .pr-figure-positions .pr-inj {
+    background: var(--accent);
+    color: #fff;
+    padding: 1px 3px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+  .pr-figure-positions .pr-http {
+    background: var(--code-block-bg);
+    color: var(--code-block-fg);
+    border-radius: 6px;
+    padding: 22px 26px;
+    margin: 22px 0 18px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+  .pr-figure-positions .pr-http .pr-http-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18ch;
+    column-gap: 24px;
+    align-items: baseline;
+  }
+  .pr-figure-positions .pr-http .pr-http-line {
+    white-space: pre;
+    color: #d4cab0;
+  }
+  .pr-figure-positions .pr-http .pr-http-line .pr-key { color: #a8a298; }
+  .pr-figure-positions .pr-http .pr-http-line .pr-inj-tag {
+    background: var(--accent);
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 500;
+    margin: 0 2px;
+  }
+  .pr-figure-positions .pr-http .pr-http-label {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: #c8c1aa;
+    white-space: nowrap;
+    text-align: left;
+  }
+  .pr-figure-positions .pr-http .pr-http-label .pr-num {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 9px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .pr-figure-positions .pr-http .pr-http-blank { color: #555; }
+  .pr-figure-positions .pr-http-legend {
+    margin-top: 14px;
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .pr-figure-positions .pr-math {
+    background: var(--code-block-bg);
+    color: var(--code-block-fg);
+    border-radius: 6px;
+    padding: 22px 26px;
+    margin: 24px 0 18px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.75;
+  }
+  .pr-figure-positions .pr-math .pr-math-sect {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 10.5px;
+    color: #a8a298;
+    margin: 16px 0 6px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 4px;
+  }
+  .pr-figure-positions .pr-math .pr-math-sect:first-child { margin-top: 0; }
+  .pr-figure-positions .pr-math .pr-row {
+    display: grid;
+    grid-template-columns: 22ch 7ch 1fr;
+  }
+  .pr-figure-positions .pr-math .pr-row .pr-lbl { color: #c8c1aa; }
+  .pr-figure-positions .pr-math .pr-row .pr-val {
+    text-align: right;
+    padding-right: 12px;
+    color: var(--accent);
+    font-feature-settings: 'tnum';
+  }
+  .pr-figure-positions .pr-math .pr-row .pr-note { color: #9d9683; font-feature-settings: 'tnum'; }
+  .pr-figure-positions .pr-math .pr-math-total {
+    border-top: 1px solid #3a3a36;
+    margin-top: 18px;
+    padding-top: 16px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    color: #d4cab0;
+  }
+  .pr-figure-positions .pr-math .pr-math-total .pr-big {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    display: block;
+    margin: 8px 0 4px;
+    font-feature-settings: 'tnum';
+  }
+  .pr-figure-positions .pr-math .pr-math-total .pr-grouped {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: #a8a298;
+    font-feature-settings: 'tnum';
+  }
+  .pr-figure-positions .pr-spread {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 18px 0;
+  }
+  .pr-figure-positions .pr-spread table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .pr-figure-positions .pr-spread th,
+  .pr-figure-positions .pr-spread td {
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .pr-figure-positions .pr-spread th {
+    background: var(--code-bg);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    color: var(--text-soft);
+  }
+  .pr-figure-positions .pr-spread td.cls {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+  }
+  .pr-figure-positions .pr-spread td.locs {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  .pr-figure-positions .pr-spread td.num {
+    font-family: var(--font-mono);
+    font-feature-settings: 'tnum';
+    text-align: right;
+    white-space: nowrap;
+  }
+  .pr-figure-positions .pr-spread tr:last-child td { border-bottom: none; }
+
   /* === END POLYRANGE_FIGURE_STYLES === */
 /* === POLYRANGE_MERMAID_STYLES === */
   .pr-flow {
@@ -555,7 +723,7 @@
     max-width: 100% !important;
     height: auto !important;
   }
-  /* CLI / TUI illustration block inside Figure 4 — paragraphs render tighter
+  /* CLI / TUI illustration block inside Figure 5 — paragraphs render tighter
      than body copy so the figure feels self-contained, and pre blocks inherit
      the document's existing dark code-block treatment. */
   .pr-flow-cli p {
@@ -619,9 +787,10 @@
     <div class="eyebrow">Working Paper · Independent Research</div>
     <h1>PolyRange</h1>
     <div class="meta">
-      <strong>Status:</strong> v1.0 framework implemented; capability-smoke complete; publishable-N pending partnership funding<br>
+      <strong>Status:</strong> v1.0 framework implemented; capability-smoke complete; publishable-N pending research funding<br>
+      <strong>Code:</strong> <a href="https://github.com/orlyjamie/polyrange" target="_blank" rel="noreferrer">github.com/orlyjamie/polyrange</a> — MIT-licensed, self-hostable, ships the full 84-class catalogue and the eval CLI<br>
       <strong>Author:</strong> Jamieson O'Reilly (independent research)<br>
-      <strong>Last updated:</strong> 2026-05-30
+      <strong>Last updated:</strong> 2026-05-31
     </div>
   </header>
 
@@ -701,6 +870,54 @@ The harness-gap finding is the most practically consequential: it informs where 
   </p>
 </figure>
 <!-- POLYRANGE_FIGURE:contact-sheet end -->
+
+
+<!-- POLYRANGE_FIGURE:positions start -->
+<figure class="pr-figure pr-figure-positions">
+  <p class="pr-eyebrow">Figure 3 · Per-deploy injection position spread</p>
+  <p class="pr-title">The same scenario, six wire-level different attacks.</p>
+  <p class="pr-subtitle">
+    Where the harness places the injectable parameter on the HTTP request is a deterministic axis selected per deploy. For the command-injection class (<code>WSTG-INPV-12</code>), the seeded pool spans all six positions a real adversary would actually encounter in production. A model that probes only the URL query string recovers at most one in six PolyRange command-injection deployments on this axis alone. The six positions, holding theme and payload fixed so only position varies:
+  </p>
+  <div class="pr-http">
+    <div class="pr-http-row"><span class="pr-http-line"><span class="pr-key">POST</span> /shipments/dispatch/<span class="pr-inj-tag">⑥</span>?<span class="pr-inj-tag">①</span> <span class="pr-key">HTTP/1.1</span></span><span class="pr-http-label"><span class="pr-num">①</span>query string<br><span class="pr-num">⑥</span>path segment</span></div>
+    <div class="pr-http-row"><span class="pr-http-line"><span class="pr-key">Host:</span> parceltrack-abc123.fly.dev</span><span class="pr-http-label"></span></div>
+    <div class="pr-http-row"><span class="pr-http-line"><span class="pr-inj-tag">④</span> <span class="pr-key">Label-Locale:</span> ; printenv</span><span class="pr-http-label"><span class="pr-num">④</span>custom header</span></div>
+    <div class="pr-http-row"><span class="pr-http-line"><span class="pr-key">Cookie:</span> session=AB12CD; <span class="pr-inj-tag">⑤</span></span><span class="pr-http-label"><span class="pr-num">⑤</span>cookie</span></div>
+    <div class="pr-http-row"><span class="pr-http-line"><span class="pr-key">Content-Type:</span> application/x-www-form-urlencoded   <span class="pr-http-blank">|</span>   application/json</span><span class="pr-http-label"></span></div>
+    <div class="pr-http-row"><span class="pr-http-line">&nbsp;</span><span class="pr-http-label"></span></div>
+    <div class="pr-http-row"><span class="pr-http-line"><span class="pr-inj-tag">②</span> label_locale=; printenv</span><span class="pr-http-label"><span class="pr-num">②</span>body, urlencoded</span></div>
+    <div class="pr-http-row"><span class="pr-http-line"><span class="pr-inj-tag">③</span> {"label_locale": "; printenv"}</span><span class="pr-http-label"><span class="pr-num">③</span>body, JSON</span></div>
+    <p class="pr-http-legend">A single deploy uses exactly one of the six positions, chosen uniformly at random by the harness before any LLM call. The agent has to discover which position the application reads from before the canonical payload can land.</p>
+  </div>
+  <div class="pr-math">
+    <div class="pr-math-sect">Exploit-recall axes — deterministically seeded per deploy (command-injection)</div>
+    <div class="pr-row"><span class="pr-lbl">injection position</span><span class="pr-val">× 6</span><span class="pr-note">query, body-form, body-json, header, cookie, path-segment</span></div>
+    <div class="pr-row"><span class="pr-lbl">— deterministic count</span><span class="pr-val">=</span><span class="pr-val" style="text-align:left">6&nbsp;&nbsp;<span class="pr-note">per deploy</span></span></div>
+    <div class="pr-math-sect">LLM-driven content — varies per deploy but cannot be cleanly enumerated</div>
+    <div class="pr-row"><span class="pr-lbl">parameter name</span><span class="pr-val">—</span><span class="pr-note">drawn from the theme's domain vocabulary by the generator LLM</span></div>
+    <div class="pr-row"><span class="pr-lbl">endpoint path</span><span class="pr-val">—</span><span class="pr-note">feature-named per deploy; the agent must discover it</span></div>
+    <div class="pr-row"><span class="pr-lbl">surrounding chrome / decoys</span><span class="pr-val">—</span><span class="pr-note">decoy paths, page copy, error styles — the recon surface</span></div>
+    <div class="pr-math-total" style="border-top:none;padding-top:0;margin-top:8px;color:#a8a298;font-style:italic">The deterministic count above (6) is a lower bound: it is the share that can be enumerated in code before any LLM contribution. The LLM-driven content varies the parameter name, the endpoint path, and the surrounding recon surface per deploy. The variance is real but bounded by the generator LLM's own mode-collapse tendencies — not unbounded — and is the reason this paper does not stack it onto a single headline product. A recalled exploit pattern fires only if it lands on the right position, against the right parameter name, at the right path. Recall of any one PolyRange deploy is consequently not load-bearing for solving the next.
+    <br><br>
+    Note on canary tokens: each deploy embeds a fresh 96-bit canary that proves successful exploitation occurred (rather than recall of a memorised string). The canary defeats flag-value recall, not exploit-shape recall; it is not counted as an exploit-recall axis here.</div>
+    <div class="pr-math-sect">Realism axes — cosmetic surface variance (do not change the exploit)</div>
+    <div class="pr-row"><span class="pr-lbl">industry</span><span class="pr-val">× 97</span><span class="pr-note">verticals across the real economy: agriculture, fintech, mining, mortuary, …</span></div>
+    <div class="pr-row"><span class="pr-lbl">era</span><span class="pr-val">× 16</span><span class="pr-note">1970s mainframe … 2025-era AI-native, sunset legacy, PE roll-up</span></div>
+    <div class="pr-row"><span class="pr-lbl">maturity</span><span class="pr-val">× 17</span><span class="pr-note">pre-product stealth … Fortune-500, co-op, agency, holdings</span></div>
+    <div class="pr-row"><span class="pr-lbl">voice</span><span class="pr-val">× 18</span><span class="pr-note">utilitarian, playful, brutalist, folksy, urgent, …</span></div>
+    <div class="pr-row"><span class="pr-lbl">layoutArchetype</span><span class="pr-val">× 32</span><span class="pr-note">top-nav, sidebar, terminal, kanban, map-centred, calendar, …</span></div>
+    <div class="pr-row"><span class="pr-lbl">designLanguage</span><span class="pr-val">× 44</span><span class="pr-note">Swiss, Stripe, IBM Carbon, Memphis, mid-century Eames, …</span></div>
+    <div class="pr-row"><span class="pr-lbl">colorTreatment</span><span class="pr-val">× 22</span><span class="pr-note">light/restrained, dark, midnight-blue + gold, terracotta + bone, …</span></div>
+    <div class="pr-row"><span class="pr-lbl">colorFamily</span><span class="pr-val">× 58</span><span class="pr-note">slate, navy, magenta, claret, periwinkle, sienna, umber, …</span></div>
+    <div class="pr-row"><span class="pr-lbl">brand-name seeds</span><span class="pr-val">× 176,820</span><span class="pr-note">2 picks from a 421-word concrete-noun pool, no replacement</span></div>
+    <div class="pr-row"><span class="pr-lbl">— realism share</span><span class="pr-val">=</span><span class="pr-val" style="text-align:left">1.51 × 10<sup>17</sup>&nbsp;&nbsp;<span class="pr-note">(151 quadrillion)</span></span></div>
+    <div class="pr-math-total" style="border-top:none;padding-top:0;margin-top:8px;color:#a8a298;font-style:italic">These axes change what the page looks like — brand, copy, palette, layout. Any known exploit pattern for a given vulnerability class works the same against a 1995 fintech site as against a 2024 healthcare site, so realism variance does not contribute to exploit-recall resistance. Its job is to prevent the model from recognising a deploy as PolyRange via cosmetic fingerprint, and to force the agent to parse real HTML for the feature it cares about rather than pattern-match a template.</div>
+  </div>
+  <div class="pr-spread"><table><thead><tr><th>Class</th><th>WSTG ID</th><th>Positions seeded</th><th class="num">Deterministic count</th><th>Sub-axis (if any)</th></tr></thead><tbody><tr><td class="cls">sqli</td><td class="cls">INPV-05</td><td class="locs">query · body-form · body-json · header · cookie · path-segment</td><td class="num">18</td><td class="locs">× 3 SQL dialects (sqlite, postgres, mysql)</td></tr><tr><td class="cls">code-injection</td><td class="cls">INPV-11</td><td class="locs">query · body-form · body-json · header</td><td class="num">16</td><td class="locs">× 4 backends (python, php, ruby, node)</td></tr><tr><td class="cls">command-injection</td><td class="cls">INPV-12</td><td class="locs">query · body-form · body-json · header · cookie · path-segment</td><td class="num">6</td><td class="locs">single backend (Node + /bin/sh)</td></tr><tr><td class="cls">directory-traversal</td><td class="cls">ATHZ-01</td><td class="locs">query · body-form · header · cookie · path-segment</td><td class="num">5</td><td class="locs">—</td></tr><tr><td class="cls">lfi</td><td class="cls">INPV-11.1</td><td class="locs">query · body-form · header · cookie</td><td class="num">4</td><td class="locs">PHP-only (include sink)</td></tr><tr><td class="cls">ssrf</td><td class="cls">INPV-19</td><td class="locs">query · body-form · body-json · header</td><td class="num">4</td><td class="locs">—</td></tr><tr><td class="cls">ssti</td><td class="cls">INPV-18</td><td class="locs">query · body-form · body-json · header</td><td class="num">4</td><td class="locs">Jinja2 backend</td></tr><tr><td class="cls">xss (reflected)</td><td class="cls">INPV-01</td><td class="locs">query · body-form · header · path-segment</td><td class="num">4</td><td class="locs">—</td></tr></tbody></table></div>
+  <p class="pr-caption">The deterministic count is the share that can be enumerated in code before any LLM call. Every row also has LLM-driven content (parameter name, endpoint path, schema and table names, decoy structure, chrome and copy) that varies per deploy; that variance is real and substantial but cannot be cleanly multiplied as a fixed integer, so it is reported separately rather than stacked into a single product. The realism axes — theme, palette, layout, copy — are excluded entirely from this table: they vary the surface but not the exploit, so they belong to the diversity story rather than the contamination-resistance story.</p>
+</figure>
+<!-- POLYRANGE_FIGURE:positions end -->
 
 
 ---
@@ -962,7 +1179,7 @@ The existing benchmark landscape is shaped around what frontier models do well: 
 ## Architecture decisions (locked)
 
 <div class="pr-flow">
-  <p class="pr-flow-eyebrow">Figure 3 · End-to-end evaluation flow</p>
+  <p class="pr-flow-eyebrow">Figure 4 · End-to-end evaluation flow</p>
   <p class="pr-flow-title">From researcher invocation through agent attack to confidence-interval-bearing report.</p>
 
 ```mermaid
@@ -980,7 +1197,7 @@ flowchart LR
 </div>
 
 <div class="pr-flow pr-flow-cli">
-  <p class="pr-flow-eyebrow">Figure 4 · Running an evaluation</p>
+  <p class="pr-flow-eyebrow">Figure 5 · Running an evaluation</p>
   <p class="pr-flow-title">From CLI invocation to confidence-interval-bearing report, end-to-end.</p>
 
 The full evaluation flow is exercised through a single CLI invocation. The researcher supplies a model label (used in output filenames and report headers; the framework itself does not call the model under test), the tier ladder to evaluate, the class subset, and a run identifier. Every other parameter has a defensible default.
@@ -1554,21 +1771,6 @@ Resolved:
 Still open:
 1. **Empirical run target list (publishable-N)** — frontier-model panel anchors the initial capability-smoke. Open-source baseline (Llama 3.3 70B class) and AISI evaluation models worth adding once pending research funding closes.
 
-
----
-
-
-
-
-
-
-
-
-
-
-
-
-
 <!-- POLYRANGE_REFERENCES_START -->
 ## References
 
@@ -1666,6 +1868,84 @@ The following sources support the abstract's contamination and undefended-target
     a.textContent = h.textContent;
     toc.appendChild(a);
   });
+</script>
+
+
+<!-- Image lightbox -->
+<style>
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(28, 25, 23, 0.92);
+    display: none; align-items: center; justify-content: center;
+    padding: 32px;
+    cursor: zoom-out;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: 95vw; max-height: 90vh;
+    object-fit: contain;
+    box-shadow: 0 30px 80px rgba(0,0,0,.5);
+    border-radius: 4px;
+  }
+  .lightbox .caption {
+    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+    color: #d6d3d1; font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: .04em;
+    background: rgba(0,0,0,.4); padding: 6px 12px; border-radius: 4px;
+    pointer-events: none;
+  }
+  .lightbox .close {
+    position: absolute; top: 18px; right: 24px;
+    color: #fafaf9; font-family: 'Geist Mono', monospace; font-size: 24px;
+    background: none; border: none; cursor: pointer; padding: 8px;
+    line-height: 1;
+  }
+  .lightbox .close:hover { color: var(--accent); }
+  body.lightbox-open { overflow: hidden; }
+</style>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+  <button class="close" aria-label="Close">×</button>
+  <img id="lightbox-img" alt="" />
+  <div class="caption" id="lightbox-caption"></div>
+</div>
+<script>
+  (function(){
+    const lb = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    const cap = document.getElementById('lightbox-caption');
+    const close = lb.querySelector('.close');
+    function open(src, alt){
+      img.src = src;
+      img.alt = alt || '';
+      cap.textContent = alt || '';
+      lb.classList.add('open');
+      lb.setAttribute('aria-hidden','false');
+      document.body.classList.add('lightbox-open');
+    }
+    function shut(){
+      lb.classList.remove('open');
+      lb.setAttribute('aria-hidden','true');
+      document.body.classList.remove('lightbox-open');
+      img.src = '';
+    }
+    document.addEventListener('click', function(e){
+      const a = e.target.closest('a');
+      if(!a) return;
+      const im = a.querySelector('img');
+      if(!im) return;
+      if(a.getAttribute('href') !== im.getAttribute('src')) return;
+      e.preventDefault();
+      open(a.getAttribute('href'), im.getAttribute('alt'));
+    });
+    lb.addEventListener('click', function(e){
+      if(e.target === lb || e.target === close) shut();
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && lb.classList.contains('open')) shut();
+    });
+  })();
 </script>
 
 </body>
