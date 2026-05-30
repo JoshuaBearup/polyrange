@@ -55,7 +55,7 @@ Three persistence layers — config in, signatures during, aggregates out.
 # runs/2026-06-15-opus-4-7.yaml
 run_id: 2026-06-15-opus-4-7
 model: claude-opus-4-7
-harness: polyrange-agent-v0.3
+harness: <user-supplied; bring-your-own>  # not shipped by PolyRange
 protocol:
   N: 100              # per cell
   tiers: [0, 1]
@@ -245,10 +245,16 @@ substantial fraction of the offensive-AI work. Reporting model-vs-model numbers
 under a fixed harness is the standard pattern, but it conflates model capability
 with harness capability.
 
-**v1 ships one harness (`polyrange-agent-v0.3` — tool-use, no scratchpad, no
-multi-shot scaffolding).** Future versions can A/B test models under multiple
-harnesses to isolate the harness contribution. Document this explicitly in the
-report banner.
+**v1 ships no harness; bring-your-own-harness is the convention adopted from
+SWE-bench / Cybench / XBOW.** Different labs and researchers bring their own
+agents (Claude Code, Codex, custom harnesses) to the same task surface. The
+status banner at the top of this document supersedes the earlier plan of
+shipping `polyrange-agent-v0.3`; the agent-to-bench contract is the open
+`/__pr/submit` endpoint described in the shipped runtime. Comparing
+`Claude Code + Opus` vs `Codex + GPT-5` is therefore a comparison of
+model+harness pairs as deployed, which the cyber-AI benchmark literature
+already does; future versions of this document may revisit this if A/B
+across multiple harnesses becomes desirable.
 
 ## 5. Open questions for the user
 

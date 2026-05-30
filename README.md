@@ -2,7 +2,7 @@
 
 **A contamination-resistant benchmark framework for offensive AI evaluation against randomised, defended web targets.**
 
-PolyRange measures real-world adversarial capability — what a capable threat actor has to do against an unfamiliar production surface — rather than what a labelled-CTF or pre-disclosed benchmark hands a model. Every deployment is unique: endpoint paths, parameter names, scenario theming, decoy site map, and the canary value itself are LLM-generated per deploy. The framework ships 85 atomic test classes drawn from WSTG v4.2 across all 12 categories, with two defence tiers (T0 undefended, T1 signature WAF plus class-conditional logic) and a real exploitation oracle (Playwright browser confirmation for client-side classes, substring canary recovery for server-side).
+PolyRange measures real-world adversarial capability — what a capable threat actor has to do against an unfamiliar production surface — rather than what a labelled-CTF or pre-disclosed benchmark hands a model. Every deployment is unique: endpoint paths, parameter names, scenario theming, decoy site map, and the canary value itself are LLM-generated per deploy. The framework ships 84 atomic test classes drawn from WSTG v4.2 across all 12 categories, with two defence tiers (T0 undefended, T1 signature WAF plus class-conditional logic implemented for 54 of the 84 classes) and a real exploitation oracle (Playwright browser confirmation for client-side classes, agent-submits-flag verification via `/__pr/submit` for server-side).
 
 The methodological contribution is the framework. The empirical contribution — a paper presenting confidence-interval-bearing results across a frontier-model panel — depends on partnership funding and follows the framework's release. See `docs/north-star.md` for the protocol and `plan.html` for the paper draft.
 
@@ -46,7 +46,7 @@ The `polyrange eval` precheck step will offer to fix missing items interactively
 ```
 polyrange.mjs           ← unified CLI entrypoint
 lib/                    ← CLI internals (dashboard, wizard, monitor, report)
-classes/                ← 85 atomic test classes (one directory each)
+classes/                ← 84 atomic test classes (one directory each)
   wstg-sqli-4.7.5.4/      ← schema, behaviour, defences, constraints, infra
   wstg-idor-4.5.4/
   ...
@@ -151,7 +151,7 @@ The signature JSON carries `solved`, `solvedAt`, `firstRequestAt`, `submittedAt`
 
 ### Statistical scope
 
-The protocol-level guidance on what is and is not a defensible claim at different N values is in `docs/north-star.md` section 4. At N=1 fresh-draw across 170 cells (85 classes × 2 tiers), aggregate solve rate and within-model defence gap (T0 vs T1) carry roughly ±0.04 confidence intervals — analogous to SWE-bench's pass@1 single-attempt convention. Per-class capability claims require N ≥ 30 and the partnership-funded run described in the paper's Limitations section.
+The protocol-level guidance on what is and is not a defensible claim at different N values is in `docs/north-star.md` section 4. At N=1 fresh-draw across 138 cells (84 T0 cells plus 54 T1 cells for the subset of classes that implement T1 today; the remaining 30 classes are T0-only by current design), aggregate solve rate and within-model defence gap (T0 vs T1) carry roughly ±0.05 confidence intervals — analogous to SWE-bench's pass@1 single-attempt convention. Per-class capability claims require N ≥ 30 and the partnership-funded run described in the paper's Limitations section.
 
 ## Flag reference
 
@@ -180,7 +180,7 @@ node polyrange.mjs eval \
   --yes
 ```
 
-The CLI deploys 170 cells, writes the mega-prompt to `runs/claude-blog/prompt.txt`, and pauses on the hand-off screen. In a second terminal: open Claude Code, paste the prompt (or `cat runs/claude-blog/prompt.txt | pbcopy` to copy it). The prompt instructs the agent to work through every URL, exploit each deployment, and `POST {"flag":"..."}` to `<URL>/__pr/submit`. When the agent is running, press ENTER in the first terminal to start the live monitor.
+The CLI deploys 138 cells (84 T0 + 54 T1), writes the mega-prompt to `runs/claude-blog/prompt.txt`, and pauses on the hand-off screen. In a second terminal: open Claude Code, paste the prompt (or `cat runs/claude-blog/prompt.txt | pbcopy` to copy it). The prompt instructs the agent to work through every URL, exploit each deployment, and `POST {"flag":"..."}` to `<URL>/__pr/submit`. When the agent is running, press ENTER in the first terminal to start the live monitor.
 
 ### Codex as the OpenAI harness
 
@@ -231,9 +231,9 @@ Sweep totals:
 
 | Scope | Deploys | Cost |
 |---|---|---|
-| One tier, 85 classes | 85 | ~$120 |
-| Both tiers, 85 classes | 170 | ~$240 |
-| Per-cell N=100 publishable run, one model | 17,000 | ~$24k (deploys only) |
+| T0 only, full catalogue (84 classes) | 84 | ~$120 |
+| T0 + T1 where implemented (84 + 54) | 138 | ~$195 |
+| Per-cell N=100 publishable run, one model | 13,800 | ~$19k (deploys only) |
 
 A full publishable-N evaluation including model API spend lands around $190k per model — see `plan.html` § Limitations § Evaluation at scale.
 

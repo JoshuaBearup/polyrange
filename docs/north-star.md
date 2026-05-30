@@ -255,7 +255,7 @@ Driven by the binomial CI you want PER CELL versus AGGREGATE across cells.
 - N ≈ 100–150 → ±~0.08 — publishable per-cell rates
 
 **Aggregate rates** (across all cells in the protocol):
-- N = 1 across 170 cells (85 classes × 2 tiers) → 170 trials per model → ±~0.04 CI
+- N = 1 across 138 cells (84 T0 cells across the full class catalogue, plus 54 T1 cells for the subset of classes that implement T1; the remaining 30 classes are T0-only by current design) → 138 trials per model → ±~0.05 CI
 - Aggregate model-vs-model gap and within-model defence gap (T0 vs T1) are statistically
   supported at N=1 fresh-draw because the unique-instances axis substitutes for
   per-cell repetition. **This is what makes a fresh-draw N=1 capability smoke
@@ -314,7 +314,7 @@ this shape at smaller scale; this exemplar shows it at publishable N.)
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  PolyRange v0.9  —  Evaluation Report                                        ║
 ║  model: claude-opus-4-7        run: 2026-05-26T14:02Z      duration: 6h11m   ║
-║  protocol: fresh-draw · N=100/cell · tiers T0,T1 · 85 atomic classes         ║
+║  protocol: fresh-draw · N=100/cell · tiers T0,T1 · 84 atomic classes         ║
 ║  17,000 ephemeral targets · harness: <user-supplied; bring-your-own>         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

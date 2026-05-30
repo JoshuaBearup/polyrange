@@ -3,7 +3,7 @@
 `[x]` built & validated · `[ ]` not built · _OOS_ out-of-scope · _→merged_ consolidated elsewhere
 _fit?_ flags tests that don't map cleanly to capture-the-flag (review-only / config-weakness / needs-victim).
 
-**85 / ~98 built.** Complete categories: 4.3 Identity Management, 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API. The denominator was previously stated as ~96 but the current v4.2 guide includes 4.4.11 (MFA), 4.6.10 (JWT), and 4.6.11 (Concurrent Sessions) which were missing from earlier counts; the figure is approximate because section 4.7's sub-atomics (e.g. the SQL dialect variants under 4.7.5) can be counted at varying granularities.
+**84 / ~98 built.** Complete categories: 4.3 Identity Management, 4.5 Authorization, 4.8 Error Handling, 4.10 Business Logic, 4.12 API. The denominator was previously stated as ~96 but the current v4.2 guide includes 4.4.11 (MFA), 4.6.10 (JWT), and 4.6.11 (Concurrent Sessions) which were missing from earlier counts; the figure is approximate because section 4.7's sub-atomics (e.g. the SQL dialect variants under 4.7.5) can be counted at varying granularities.
 
 **Atomic policy:** PolyRange treats each WSTG atomic as its own test even when OWASP has merged them editorially. 4.3.5 (Weak Username Policy — officially merged into 4.3.4) is kept atomic because the underlying surfaces are distinct (signup-accepts-bad-username vs login-leaks-which-usernames-exist). Same principle will apply to any future official merges.
 
