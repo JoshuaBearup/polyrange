@@ -5,7 +5,7 @@ set -e
 cd /Users/jamie/Downloads/polyrange
 . ~/.nvm/nvm.sh >/dev/null 2>&1
 nvm use 20 >/dev/null 2>&1
-export ANTHROPIC_API_KEY="REDACTED-ROTATED-KEY"
+: "${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY must be set in the environment}"
 
 sleep 45   # let the per-minute token window fully reset after the parallel 429s
 
