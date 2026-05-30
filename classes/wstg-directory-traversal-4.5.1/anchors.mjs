@@ -4,5 +4,7 @@
 // (X-Asset-Path on internal CDN front, X-Doc-Id on doc viewers).
 //
 // body-json is uncommon for traversal (file params rarely sit in API JSON).
-// path-segment deferred to v1.1 (matchesRequest needs template-matching).
-export const INJECTION_LOCATIONS = ['query', 'body-form', 'header', 'cookie']
+// Path-segment is a classical traversal vector (e.g. /files/:name -> read
+// content/<name> with no separator escape) — kept in alongside the more
+// modern shapes.
+export const INJECTION_LOCATIONS = ['query', 'body-form', 'header', 'cookie', 'path-segment']

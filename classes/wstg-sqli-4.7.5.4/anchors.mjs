@@ -5,10 +5,10 @@ const DIALECTS = ['sqlite', 'postgres', 'mysql']
 // Per-deploy injection-location anchor. Real-world SQLi input rides through
 // query (theme-named lookup parameter), form-body (admin lookup form),
 // JSON-body (mobile/SPA API), headers (X-Tenant-Id / X-Locale / X-Request-ID
-// looked up server-side), and cookies (sticky preference / tenant cookie fed
-// into a query). path-segment is deferred to v1.1 (needs template-matching
-// support in matchesRequest across all classes).
-export const INJECTION_LOCATIONS = ['query', 'body-form', 'body-json', 'header', 'cookie']
+// looked up server-side), cookies (sticky preference / tenant cookie fed
+// into a query), and path-segments (REST routes like /products/:slug where
+// the slug is concatenated into a WHERE clause — /products/x' OR '1'='1).
+export const INJECTION_LOCATIONS = ['query', 'body-form', 'body-json', 'header', 'cookie', 'path-segment']
 
 export function pickAnchor() {
   const pin = process.env.POLYRANGE_SQL_DIALECT

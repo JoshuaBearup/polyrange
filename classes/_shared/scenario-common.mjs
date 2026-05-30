@@ -80,6 +80,26 @@ export const SignupFormCopy = z.object({
   ctaLabel: z.string().describe('Submit button label, themed for the site'),
 }).describe('Copy for the auto-generated /signup form. Runtime renders the form using these strings.')
 
+// Match an actual request pathname against an endpoint.path template that
+// may contain `:name` or `{name}` segments (Express/OpenAPI conventions).
+// Used by every class's matchesRequest so path-segment injection deploys
+// (e.g. endpoint.path = "/products/:slug", request = "/products/foo'") route
+// correctly. Strict literal match for non-template paths.
+export function pathMatchesTemplate(template, actual) {
+  if (template === actual) return true
+  if (!template.match(/[:{]/)) return template === actual
+  const tparts = template.split('/').filter(Boolean)
+  const aparts = actual.split('/').filter(Boolean)
+  if (tparts.length !== aparts.length) return false
+  for (let i = 0; i < tparts.length; i++) {
+    const t = tparts[i]
+    if (t.startsWith(':')) continue
+    if (t.startsWith('{') && t.endsWith('}')) continue
+    if (t !== aparts[i]) return false
+  }
+  return true
+}
+
 // Render a Zod object schema as LLM-readable instructions.
 // Defensively handles wrappers (refine, transform, optional, default, branded).
 export function describeSchema(schema, indent = 0) {

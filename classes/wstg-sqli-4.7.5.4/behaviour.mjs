@@ -10,6 +10,7 @@
 
 import { makeDb } from '../_shared/sql-dialects.mjs'
 import { synthesizeRecords } from '../_shared/synthesize-records.mjs'
+import { pathMatchesTemplate } from '../_shared/scenario-common.mjs'
 import { Scenario } from './scenario.mjs'
 
 const esc = s => String(s).replace(/'/g, "''")
@@ -70,7 +71,7 @@ export const classDef = {
 
   matchesRequest({ reqUrl, req, scenario }) {
     if (req.method !== (scenario.endpoint.method || 'GET')) return false
-    return reqUrl.pathname === scenario.endpoint.path
+    return pathMatchesTemplate(scenario.endpoint.path, reqUrl.pathname)
   },
 
   async handleRequest({ req, reqUrl, scenario, helpers, renderPage, manifest }) {

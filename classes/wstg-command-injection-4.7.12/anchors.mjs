@@ -4,5 +4,6 @@
 // a per-tenant header rendered into an admin command, a path-segment lookup
 // that triggers a backup script. Spread across these so a model that only
 // probes ?host= catches a small fraction.
-// path-segment deferred to v1.1 (matchesRequest needs template-matching).
-export const INJECTION_LOCATIONS = ['query', 'body-form', 'body-json', 'header', 'cookie']
+// path-segment is realistic for command injection — e.g. /ping/:host where
+// host is concatenated into `ping <host>` directly.
+export const INJECTION_LOCATIONS = ['query', 'body-form', 'body-json', 'header', 'cookie', 'path-segment']
