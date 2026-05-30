@@ -16,7 +16,7 @@ export const Scenario = z.object({
     method: z.enum(['GET', 'POST']).default('GET'),
   }),
   slots: z.object({
-    user_input: Slot.describe('The parameter holding the filename to view (the traversal injection point) — usually a query param like file, doc, template, page.'),
+    user_input: Slot.describe('The parameter holding the filename to view (the traversal injection point). The deploy anchor seeds slots.user_input.location — build the file-viewer feature around whatever position is seeded; do not default to query.'),
   }),
   defaultFile: z.string().min(1)
     .describe('A legitimate filename shown by default (e.g. welcome.txt, getting-started.md). Plain name, no path.'),

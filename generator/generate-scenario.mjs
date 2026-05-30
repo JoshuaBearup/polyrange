@@ -143,6 +143,29 @@ export async function generateScenarioForClass(theme, classDir, perDeployCanary)
         anchorBlock = `\nDEPLOY ANCHOR — build this scenario around the following, do not substitute:\n  ${text}\n`
       }
     }
+
+    // Additional per-deploy seed: injection input LOCATION. For any class that
+    // exports an INJECTION_LOCATIONS pool (the set of HTTP positions through
+    // which the vulnerable input realistically enters for THIS class), pick
+    // one uniformly and inject as a hard constraint. The Slot's location enum
+    // accepts all 5 generic positions; the runtime extractInput and the
+    // exploit firing helper both already understand each position. Without
+    // this seed the scenario LLM defaults to "query" almost always, leaving
+    // header / cookie / path-segment / body-json vectors essentially untested.
+    if (Array.isArray(anchors.INJECTION_LOCATIONS) && anchors.INJECTION_LOCATIONS.length > 1) {
+      const { default: crypto } = await import('node:crypto')
+      const idx = crypto.randomBytes(2).readUInt16BE(0) % anchors.INJECTION_LOCATIONS.length
+      const loc = anchors.INJECTION_LOCATIONS[idx]
+      const locHints = {
+        'query': 'GET endpoint with the parameter as a search/filter/lookup URL parameter.',
+        'body-form': 'POST endpoint accepting application/x-www-form-urlencoded; the parameter is a form field.',
+        'body-json': 'POST/PUT/PATCH endpoint accepting application/json; the parameter is a top-level JSON field.',
+        'header': 'Backend reads the parameter from an HTTP request header. Pick a realistic header name (X-Forwarded-For, User-Agent, Referer, X-Tenant-Id, X-Locale, X-Request-ID, X-Asset-Path, X-Doc-Id) and frame the feature so reading that header is natural (per-IP banner, per-tenant scoping, per-locale message, per-request audit, etc). The parameter "name" MUST be the header name.',
+        'cookie': 'Backend reads the parameter from a request cookie. Pick a realistic cookie name (preference_lang, recent_search, view_mode, last_filter, region_pref, tenant_scope) and frame the feature so reading that cookie is natural (persistent UI preference fed into a query, tracking-cookie personalisation, sticky tenant scope). The parameter "name" MUST be the cookie name.',
+        'path-segment': 'Endpoint path includes a template segment (e.g. /items/:slug or /files/{name}). The parameter "name" matches the segment template name.',
+      }
+      anchorBlock += `\nSEEDED INPUT LOCATION (per-deploy randomization axis): ${loc}\nThe scenario MUST set slots.user_input.location to "${loc}". ${locHints[loc] || ''} Do NOT default to "query" — the seed is the position, build the feature around it.\n`
+    }
   } catch {}
 
   // Optional class-specific canary-placement gate (from behaviour.mjs classDef).

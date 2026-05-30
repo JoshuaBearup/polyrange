@@ -17,7 +17,7 @@ export const Scenario = z.object({
     method: z.enum(['GET', 'POST']).default('POST'),
   }),
   slots: z.object({
-    user_input: Slot.describe('The template/message field the user supplies (the injection point) — a POST body field.'),
+    user_input: Slot.describe('The template/message field the user supplies (the injection point). The deploy anchor seeds slots.user_input.location — build the feature so the template input enters via the seeded position.'),
   }),
   greetingPrefix: z.string().min(1)
     .describe('The fixed text the user input is concatenated after, before rendering (e.g. "Hello, ", "Dear "). The template becomes <prefix><user-input>!'),

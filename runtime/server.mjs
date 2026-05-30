@@ -234,6 +234,16 @@ function makeHelpers({ rawBody, endpointPath }) {
       if (binding.location === 'body-json') {
         try { return JSON.parse(rawBody)[binding.name] ?? '' } catch { return '' }
       }
+      if (binding.location === 'cookie') {
+        const cookieHeader = req.headers.cookie || ''
+        for (const part of cookieHeader.split(';')) {
+          const [k, ...v] = part.trim().split('=')
+          if (k === binding.name) {
+            try { return decodeURIComponent(v.join('=')) } catch { return v.join('=') }
+          }
+        }
+        return ''
+      }
       return ''
     },
     rawBody,

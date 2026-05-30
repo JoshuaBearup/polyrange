@@ -384,6 +384,9 @@ function makeValidationHelpers(baseUrl) {
         } else if (slot.location === 'body-json') {
           headers['Content-Type'] = 'application/json'
           body = JSON.stringify({ [slot.name]: payload })
+        } else if (slot.location === 'cookie') {
+          const cookiePair = `${slot.name}=${encodeURIComponent(String(payload))}`
+          headers.Cookie = sessionCookie ? `${sessionCookie}; ${cookiePair}` : cookiePair
         } else if (slot.location === 'path-segment') {
           // Substitute payload into the matching path template segment
           url = `${baseUrl}${scenario.endpoint.path.replace(

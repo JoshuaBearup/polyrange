@@ -1,6 +1,14 @@
 // Per-deploy SQL dialect anchor (same pool as the auth-bypass class). Each
 // dialect runs against a real engine via classDef.infraVariant -> Dockerfile.<dialect>.
 const DIALECTS = ['sqlite', 'postgres', 'mysql']
+
+// Per-deploy injection-location anchor. Real-world SQLi input rides through
+// query (search box), form-body (legacy admin search), JSON-body (mobile/SPA
+// search APIs), headers (X-Tenant-Id / X-Locale / X-Request-ID lookups),
+// cookies (sticky preference / tracking cookie fed into a personalisation
+// query), and path-segments (REST-shaped /items/:slug routes).
+export const INJECTION_LOCATIONS = ['query', 'body-form', 'body-json', 'header', 'cookie', 'path-segment']
+
 export function pickAnchor() {
   const pin = process.env.POLYRANGE_SQL_DIALECT
   const dialect = (pin && DIALECTS.includes(pin)) ? pin : DIALECTS[Math.floor(Math.random() * DIALECTS.length)]

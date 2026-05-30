@@ -6,6 +6,12 @@
 
 const LANGUAGES = ['python', 'php', 'ruby', 'node']
 
+// Per-deploy injection-location anchor. The expression field can be POSTed
+// as a form/JSON, lifted from a query string for "preview", or pulled from a
+// header (X-Template-Snippet, X-Custom-Formula) by internal admin tooling.
+// path-segment is uncommon for free-form code — skip.
+export const INJECTION_LOCATIONS = ['query', 'body-form', 'body-json', 'header']
+
 export function pickAnchor() {
   const pinned = process.env.POLYRANGE_LANG
   const language = (pinned && LANGUAGES.includes(pinned))

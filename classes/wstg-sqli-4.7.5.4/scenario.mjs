@@ -17,7 +17,7 @@ export const Scenario = z.object({
     .describe('SQL engine, from the deploy anchor. Set scenario.dialect to it.'),
   featureLabel: z.string().describe('A search/browse feature over a catalogue. Fit the theme.'),
   endpoint: Endpoint,
-  slots: z.object({ user_input: Slot }).describe('The injectable search parameter (GET query param is simplest).'),
+  slots: z.object({ user_input: Slot }).describe('The injectable search parameter. The deploy anchor seeds slots.user_input.location — build the search feature around whatever position is seeded; do not default to query.'),
   itemsTable: TableName.describe('Public catalogue table the search queries.'),
   itemsPools: z.object({
     title: z.array(z.string()).min(6).describe('12-25 realistic item titles for this catalogue.'),

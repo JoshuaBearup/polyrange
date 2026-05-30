@@ -26,8 +26,24 @@ export const Slot = z.object({
     '"q" is a generic carryover from Google-style search). Pick a name that signals to a developer reading the request log ' +
     'WHICH feature it belongs to.'
   ),
-  location: z.enum(['query', 'body-form', 'body-json', 'header', 'path-segment'])
-    .describe('Where the parameter appears in the HTTP request'),
+  location: z.enum(['query', 'body-form', 'body-json', 'header', 'cookie', 'path-segment'])
+    .describe(
+      'Where the parameter enters the HTTP request. The deploy anchor pins this — ' +
+      'set it to the seeded value verbatim, build the feature to read from that location, ' +
+      'and write the body / chrome so the form / API / endpoint naturally exercises it. ' +
+      'Concrete real-world shapes for each location: ' +
+      'query — a search/filter/lookup URL parameter on a GET endpoint; ' +
+      'body-form — a form field on a POST endpoint with application/x-www-form-urlencoded; ' +
+      'body-json — a JSON field on a POST/PUT/PATCH endpoint that accepts application/json; ' +
+      'header — a custom or standard HTTP request header the backend reads (e.g. X-Forwarded-For ' +
+      'fed into an "IP banner" widget; User-Agent rendered in a "Last device" admin row; Referer ' +
+      'reflected into a "back to:" link; X-Tenant-Id into a per-tenant query; X-Locale into a ' +
+      'message template; X-Request-ID into a log/audit lookup); ' +
+      'path-segment — a parameter embedded in the URL path itself (REST routes like /items/:id, ' +
+      'SPA-style /search/:term, file/template routes like /pages/:name). ' +
+      'The parameter name field must reflect the chosen location — a "header" location uses an ' +
+      'HTTP-header-like name (X-Forwarded-For, X-Tenant-Id, User-Agent, Referer), not a query name.'
+    ),
 })
 
 // Shared signup-related fragments. Any class with supportsSignup MUST
