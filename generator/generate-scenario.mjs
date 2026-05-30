@@ -109,16 +109,39 @@ export async function generateScenarioForClass(theme, classDir, perDeployCanary)
     try { constraints = await fs.readFile(path.join(classDir, fname), 'utf-8'); break } catch {}
   }
 
-  // Optional per-class deploy anchor (e.g. server-fingerprint stack). If the
-  // class ships an anchors.mjs with pickAnchor(), draw one per deploy and
-  // inject it so generation spreads across the class's real surface instead
-  // of clustering on the model's prior.
+  // Optional per-class deploy anchor. Two contracts supported:
+  //   generateAnchor({callLLM, theme}) -> rich object (async, may call LLM
+  //     itself; returns {anchor, ...structured fields like companyName,
+  //     stack, backupPath}). The structured fields become HARD CONSTRAINTS
+  //     in the scenario prompt — keeps anchor and scenario coherent.
+  //   pickAnchor() -> string or object (sync, simple, legacy). The result
+  //     is injected as a do-not-substitute hint.
   let anchorBlock = ''
   try {
     const anchors = await import(path.resolve(classDir, 'anchors.mjs'))
-    if (typeof anchors.pickAnchor === 'function') {
-      const a = anchors.pickAnchor()
-      anchorBlock = `\nDEPLOY ANCHOR — build this scenario around the following, do not substitute:\n  ${typeof a === 'string' ? a : JSON.stringify(a)}\n`
+    let a = null
+    if (typeof anchors.generateAnchor === 'function') {
+      a = await anchors.generateAnchor({ callLLM, theme })
+    } else if (typeof anchors.pickAnchor === 'function') {
+      a = anchors.pickAnchor()
+    }
+    if (a != null) {
+      const text = typeof a === 'string' ? a : (a.anchor || JSON.stringify(a))
+      // If the anchor is rich (has company/stack/path), emit explicit hard
+      // constraints so the scenario LLM uses those exact values and the
+      // resulting chrome stays coherent with the backup file's stack.
+      if (typeof a === 'object' && a.companyName) {
+        const hardLines = [
+          `Company name (chrome / branding / copy): ${a.companyName}`,
+          `Company URL slug: ${a.companySlug}`,
+          `Tech stack (chrome must reflect this): ${a.stack}`,
+        ]
+        if (a.backupPath) hardLines.push(`Backup file path: ${a.backupPath}`)
+        if (a.backupFilename) hardLines.push(`Backup filename: ${a.backupFilename}`)
+        anchorBlock = `\nDEPLOY ANCHOR — build this scenario around the following, do not substitute:\n  ${text}\n\nHARD CONSTRAINTS — the scenario MUST use these exact values:\n  - ${hardLines.join('\n  - ')}\n`
+      } else {
+        anchorBlock = `\nDEPLOY ANCHOR — build this scenario around the following, do not substitute:\n  ${text}\n`
+      }
     }
   } catch {}
 
