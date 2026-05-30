@@ -1,5 +1,14 @@
 # Stage 2 — Implementation design
 
+> **Status (2026-05-30):** the orchestration layer described here is now
+> implemented as `polyrange.mjs` plus `lib/`. The data shapes use CSV instead
+> of YAML / JSON-per-cell, and the deliberate decision was made NOT to ship
+> a built-in agent harness (§3.2 below) — PolyRange follows the SWE-bench /
+> Cybench convention of bring-your-own-harness, with `/__pr/submit` as the
+> agent-to-bench protocol. See `README.md` for the actual flow. This doc is
+> retained as design history; the cost / rate-limit / failure-mode discussion
+> in §4 still applies.
+
 Concrete build plan for the eval infrastructure. The protocol (cells, sample sizes,
 fresh-draw, metrics, report shape) is already locked in `north-star.md` section 4.
 This doc covers the code: what components, what data flows between them, what

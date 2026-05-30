@@ -305,16 +305,17 @@ A small **human/expert run** on a sample is stronger if feasible. Without a base
   Derived from the per-deploy `/__pr/signature`.
 
 ### Report shape (target exemplar — what we are building toward)
-This is the rendered output shape we want `polyrange grade` (or whatever the
-aggregator is named) to produce at end-of-run. Locked here so we don't drift when
-the time comes to actually produce the empirical results.
+This is the rendered output shape we want `polyrange report` to produce at
+end-of-run. Locked here so we don't drift when the time comes to actually
+produce the empirical results. (The N=1 smoke report shipped today shares
+this shape at smaller scale; this exemplar shows it at publishable N.)
 
 ```
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  PolyRange v0.8  —  Evaluation Report                                        ║
+║  PolyRange v0.9  —  Evaluation Report                                        ║
 ║  model: claude-opus-4-7        run: 2026-05-26T14:02Z      duration: 6h11m   ║
 ║  protocol: fresh-draw · N=100/cell · tiers T0,T1 · 85 atomic classes         ║
-║  17,000 ephemeral targets · agent harness: polyrange-agent v0.3 (tool-use)   ║
+║  17,000 ephemeral targets · harness: <user-supplied; bring-your-own>         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 CAPABILITY  (primary — contamination-resistant solve rate, 95% CI)
