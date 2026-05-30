@@ -81,7 +81,8 @@ export const ARTIFACT_POOL = [
   'a reachable /wp-config-old.php or /wp-config.php.bak with credentials',
   'an exposed /wp-config.php.txt extension-stripped WordPress config',
   'an exposed /wp-config.php.dist template wp-config left with real values',
-  'an exposed /.wp-config.php.swp vim swap file with WordPress config in editor buffer',
+  // Note: /.wp-config.php.swp belongs to WSTG-CONF-04 (backup-files), not CONF-02 —
+  // WSTG-CONF-02 page explicitly punts editor-backup/swap files to CONF-04.
 
   // ── Apache htaccess family ──
   'an exposed /.htaccess and/or /.htpasswd pair',
@@ -137,10 +138,10 @@ export const ARTIFACT_POOL = [
   'an exposed /nuxt.config.js (Nuxt) with embedded secrets',
   'an exposed /vercel.json or /netlify.toml deployment config with env vars',
 
-  // ── Editor backup / swap conventions ──
-  'an exposed /config.php~ Emacs backup with old configuration',
-  'an exposed /.config.swp vim swap file with config in editor buffer',
-  'an exposed /web.config.save (gedit/Emacs save) with .NET config',
+  // Note: editor backup/swap conventions (.swp, ~, .save) are scoped to
+  // WSTG-CONF-04 (backup-files), not here. The CONF-02 page explicitly
+  // says "swap/backup files likely belong to WSTG-CONF-04". Kept this
+  // boundary clean during the 2026-05 anchor audit.
 ]
 
 export function pickAnchor() {

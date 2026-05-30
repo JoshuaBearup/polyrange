@@ -33,9 +33,11 @@ export const VECTOR_POOL = [
   // ── Form attributes ──
   'leakVector = form-action — canary inside a form action= attribute pointing to an internal/private endpoint URL',
 
-  // ── HTTP response (still page-derived) ──
-  'leakVector = response-header — canary inside a custom X-* HTTP response header set by the page handler',
-  'leakVector = set-cookie — canary inside a Set-Cookie value (debug session token, build id, or internal identifier)',
+  // Note: HTTP response-header / Set-Cookie leakage is covered by
+  // wstg-framework-fingerprint-4.1.8 (WSTG-INFO-08), not here. WSTG-INFO-05
+  // is scoped to webpage content / markup; the framework-fingerprint class
+  // already enumerates X-Powered-By, framework-specific cookies, etc. as
+  // part of its 55-entry STACK_POOL.
 ]
 
 export function pickAnchor() {
