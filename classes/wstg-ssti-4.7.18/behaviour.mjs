@@ -50,23 +50,8 @@ export const classDef = {
     return { status: 200, body: renderPage(scenario.resultBody.replace('{OUTPUT}', escapeHtml(r.body))) }
   },
 
-  async fireExploit({ baseUrl, scenario, payload, helpers }) {
-    const slot = scenario.slots.user_input
-    const method = scenario.endpoint.method
-    const url = `${baseUrl}${scenario.endpoint.path}`
-    if (slot.location === 'query' || method === 'GET') {
-      return helpers.fetchWithCookie(`${url}?${encodeURIComponent(slot.name)}=${encodeURIComponent(payload)}`, null)
-    }
-    const headers = {}
-    let body
-    if (slot.location === 'body-json') {
-      headers['Content-Type'] = 'application/json'; body = JSON.stringify({ [slot.name]: payload })
-    } else {
-      headers['Content-Type'] = 'application/x-www-form-urlencoded'
-      body = `${encodeURIComponent(slot.name)}=${encodeURIComponent(payload)}`
-    }
-    const resp = await fetch(url, { method, headers, body })
-    return { status: resp.status, body: await resp.text() }
+  async fireExploit({ scenario, payload, sessionCookie, helpers }) {
+    return helpers.fireScenarioRequest({ scenario, payload, sessionCookie })
   },
 
   exploitSuccessCriterion: ({ responseBody, perDeployCanary }) =>

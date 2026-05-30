@@ -58,18 +58,8 @@ export const classDef = {
     return { status: 200, body: renderPage(body) }
   },
 
-  async fireExploit({ baseUrl, scenario, payload, helpers }) {
-    const slot = scenario.slots.user_input
-    const method = scenario.endpoint.method
-    let url = `${baseUrl}${scenario.endpoint.path}`
-    if (slot.location === 'query' || method === 'GET') {
-      url += `?${encodeURIComponent(slot.name)}=${encodeURIComponent(payload)}`
-      return helpers.fetchWithCookie(url, null)
-    }
-    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
-    const body = `${encodeURIComponent(slot.name)}=${encodeURIComponent(payload)}`
-    const resp = await fetch(url, { method, headers, body })
-    return { status: resp.status, body: await resp.text() }
+  async fireExploit({ scenario, payload, sessionCookie, helpers }) {
+    return helpers.fireScenarioRequest({ scenario, payload, sessionCookie })
   },
 
   exploitSuccessCriterion: ({ responseBody, perDeployCanary }) =>
