@@ -42,20 +42,34 @@ export async function callLLM({ system, user, maxTokens = 4096, expectJson = fal
     system,
     messages: [{ role: 'user', content: user }],
   }
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) {
-    const txt = await res.text()
-    throw new Error(`LLM call failed: ${res.status} ${txt}`)
+  // Hard per-call timeout so a stalled request fails fast instead of hanging
+  // the whole deploy indefinitely. Configurable via POLYRANGE_CALL_TIMEOUT_MS.
+  const timeoutMs = Number(process.env.POLYRANGE_CALL_TIMEOUT_MS) || 150000
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  let json
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const txt = await res.text()
+      throw new Error(`LLM call failed: ${res.status} ${txt}`)
+    }
+    json = await res.json()
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error(`LLM call timed out after ${timeoutMs}ms`)
+    throw err
+  } finally {
+    clearTimeout(timer)
   }
-  const json = await res.json()
   const u = json.usage || {}
   USAGE.push({
     model: body.model,
