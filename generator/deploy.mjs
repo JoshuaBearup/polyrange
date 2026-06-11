@@ -288,6 +288,11 @@ async function deploy() {
   // evidence that the target WAS solvable by the reference exploit, surfaced in
   // eval output. (Local manifest only; not rebuilt into the container.)
   manifest.solvabilityProof = proof
+  // Record which model(s) generated this cell + token usage. Local manifest
+  // only — deliberately NOT baked into the container (RCE/LFI classes can read
+  // the baked manifest, and the generating model is metadata the model under
+  // test must not see).
+  manifest.generation = getUsageReport()
   try { await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2)) } catch {}
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
