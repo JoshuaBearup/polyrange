@@ -273,8 +273,10 @@ async function cmdDestroy() {
 async function cmdOne() {
   const cls = flags.class
   const tier = flags.tier ?? '0'
+  const target = flags.target ?? 'fly'   // fly | local-docker
   if (!cls) throw new Error('--class=X is required')
-  const args = ['generator/deploy.mjs', `--class=${cls}`, `--tier=${tier}`, '--target=fly']
+  const args = ['generator/deploy.mjs', `--class=${cls}`, `--tier=${tier}`, `--target=${target}`]
+  if (flags.region) args.push(`--region=${flags.region}`)
   if (flags.ephemeral) args.push('--ephemeral')
   const child = spawn('node', args, { stdio: 'inherit', cwd: REPO_ROOT, env: process.env })
   await new Promise((resolve) => child.on('close', resolve))

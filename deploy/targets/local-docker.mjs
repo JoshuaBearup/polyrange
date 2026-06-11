@@ -4,8 +4,23 @@
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import net from 'node:net'
 import { spawn } from 'node:child_process'
 import crypto from 'node:crypto'
+
+// Ask the OS for a free ephemeral port on the loopback interface. Far safer
+// than a random pick under concurrent deploys, where two cells could otherwise
+// choose the same port and the second `docker run -p` would fail.
+function findFreePort() {
+  return new Promise((resolve, reject) => {
+    const srv = net.createServer()
+    srv.on('error', reject)
+    srv.listen(0, '127.0.0.1', () => {
+      const { port } = srv.address()
+      srv.close(() => resolve(port))
+    })
+  })
+}
 
 function run(cmd, args, opts = {}) {
   return new Promise((resolve, reject) => {
@@ -84,8 +99,8 @@ export async function deployLocalDocker({ manifest, manifestPath, repoRoot }) {
   // Tear down any old container with the same name (idempotency for re-deploys)
   await run('docker', ['rm', '-f', containerName], { quiet: true }).catch(() => {})
 
-  // Pick a free local port
-  const port = 8000 + Math.floor(Math.random() * 1000)
+  // Pick a free local port (OS-assigned, avoids collisions across concurrent deploys)
+  const port = await findFreePort()
 
   // Run detached
   console.log(`  [docker run] ${containerName} on :${port}`)
