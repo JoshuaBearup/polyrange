@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://polyrange.dev/schemas/attack-trace/1.0.0.json",
+  "title": "PolyRange Attack Trace",
+  "description": "A harness-agnostic, transport-agnostic record of how one attacking agent reasoned through one PolyRange cell. Emitted by an attacker-side adapter and consumed by the analysis pass. The schema is the contract; it may be POSTed to an ingest endpoint or written to a file, and it never assumes a particular harness.",
+  "type": "object",
+  "required": ["schema_version", "cell", "agent", "steps", "outcome"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of this trace schema. Consumers must reject a major version they do not understand and may ignore unknown optional fields within a known major.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "cell": {
+      "type": "object",
+      "description": "Identifies the target cell the agent attacked. cell_id is the stable join key that groups traces from different agents against the same deployed target so the analysis pass can compare them.",
+      "required": ["cell_id", "class_id", "tier"],
+      "additionalProperties": false,
+      "properties": {
+        "cell_id": {
+          "type": "string",
+          "description": "Stable identifier for this deployed cell, identical across every agent that attacks it. Recommended: the per-deploy canary, or a hash of it.",
+          "minLength": 1
+        },
+        "class_id": { "type": "string", "description": "WSTG class identifier, e.g. wstg-sqli-4.7.5.4.", "minLength": 1 },
+        "tier": { "type": "integer", "description": "Defence tier (0 = undefended, 1 = WAF, ...).", "minimum": 0 },
+        "target_url": { "type": "string", "description": "Base URL the agent attacked (optional; may be omitted for privacy).", "format": "uri" },
+        "canary": { "type": "string", "description": "The flag the agent was expected to recover (optional).", "pattern": "^pr_[0-9a-f]{24}$" }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "description": "Identifies the attacking agent and — critically — both the requested and the actually-served model. These can differ silently (e.g. an offensive prompt rerouted to a different model), so model_served is recorded separately and is null when the harness cannot verify it.",
+      "required": ["harness", "model_requested", "model_served"],
+      "additionalProperties": false,
+      "properties": {
+        "harness": { "type": "string", "description": "Identifier of the attacking harness, e.g. claude-code, norn-codex.", "minLength": 1 },
+        "harness_version": { "type": "string", "description": "Harness version, if known." },
+        "model_requested": { "type": "string", "description": "Model the harness asked for.", "minLength": 1 },
+        "model_served": {
+          "type": ["string", "null"],
+          "description": "Model that actually produced the turns, verified from harness-side evidence (e.g. per-turn response metadata). null when the harness cannot determine it. If the agent ran on more than one served model across turns, this is the dominant one and per-turn served models appear on each step."
+        },
+        "run_id": { "type": "string", "description": "Opaque per-run identifier from the harness." }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered reasoning/action steps. A step pairs what the agent thought (if captured) with what it did and what it observed.",
+      "items": { "$ref": "#/$defs/step" }
+    },
+    "outcome": {
+      "type": "object",
+      "required": ["solved"],
+      "additionalProperties": false,
+      "properties": {
+        "solved": { "type": "boolean", "description": "Whether the agent recovered and submitted the correct flag." },
+        "flag": { "type": ["string", "null"], "description": "Flag the agent submitted, if any." },
+        "flag_correct": { "type": ["boolean", "null"], "description": "Oracle verdict on the submitted flag, if known." },
+        "total_requests": { "type": ["integer", "null"], "minimum": 0, "description": "Total requests the agent made to the target, if known." },
+        "duration_ms": { "type": ["integer", "null"], "minimum": 0, "description": "Wall-clock duration of the agent's session against this cell, if known." },
+        "served_model_consistent": { "type": ["boolean", "null"], "description": "True if every captured turn was served by the same model; false if the served model changed mid-run; null if unknown." }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "How this trace was produced, so a consumer can weight each field's reliability. STRONGLY recommended.",
+      "additionalProperties": false,
+      "properties": {
+        "adapter": { "type": "string", "description": "Name of the adapter that produced this trace." },
+        "adapter_version": { "type": "string" },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "capture_method": {
+          "type": "string",
+          "enum": ["transcript", "live", "manual"],
+          "description": "transcript = reconstructed post-hoc from a harness log; live = emitted during the run; manual = hand-authored."
+        },
+        "redacted": { "type": "boolean", "description": "True if payloads/observations were redacted for secrets or PII before emission." },
+        "notes": { "type": "string" }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Explicit extension point for harness-specific data that is not part of the core contract. Consumers may ignore it entirely. Keeps the core strict (additionalProperties:false) while staying forward-compatible.",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "required": ["index", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "index": { "type": "integer", "minimum": 0, "description": "0-based position in the step sequence." },
+        "phase": {
+          "type": "string",
+          "enum": ["recon", "hypothesis", "exploit", "exfiltrate", "submit", "other"],
+          "description": "Optional coarse phase label, if the adapter or model can attribute one. Not authoritative; the analysis pass may re-derive phases."
+        },
+        "thought": {
+          "type": ["string", "null"],
+          "description": "The agent's reasoning preceding this action, if captured (e.g. an extended-thinking block). null when the harness does not expose reasoning."
+        },
+        "action": {
+          "type": "object",
+          "required": ["kind", "summary"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "type": "string", "enum": ["http_request", "shell", "tool", "note", "other"], "description": "Category of action." },
+            "summary": { "type": "string", "description": "One-line human-readable description of what the agent did.", "minLength": 1 },
+            "detail": {
+              "type": "object",
+              "description": "Structured action detail (optional). For http_request: method, url, params. For shell: command. Adapter-defined but should be stable per kind.",
+              "additionalProperties": true
+            }
+          }
+        },
+        "observation": {
+          "type": ["object", "null"],
+          "description": "What the action returned, if captured.",
+          "additionalProperties": false,
+          "properties": {
+            "summary": { "type": "string", "description": "One-line description of the result." },
+            "status": { "type": ["integer", "string", "null"], "description": "HTTP status or exit code, if applicable." },
+            "detail": { "type": ["string", "object", "null"], "description": "Salient response content, possibly truncated (see truncated)." },
+            "truncated": { "type": "boolean", "description": "True if detail was truncated to bound size." }
+          }
+        },
+        "served_model": { "type": ["string", "null"], "description": "Model that produced this specific turn, if it differs per-turn." },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "tags": { "type": "array", "items": { "type": "string" }, "description": "Free-form labels, e.g. dead-end, backtrack, payload, false-positive." }
+      }
+    }
+  }
+}
