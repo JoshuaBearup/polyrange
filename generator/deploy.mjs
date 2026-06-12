@@ -153,23 +153,11 @@ async function deploy() {
   // and place the canary at a random position. Baked into the manifest scenario.
   await synthesizePopulations(classId, scenario, perDeployCanary)
 
-  log('\n[3/5] Chrome...')
-  let chrome = await generateChrome(theme, scenario.chromeInjection)
-  // Guarantee the discovery affordance is present — the chrome generator
-  // intermittently drops the chromeInjection, which orphans the scenario's
-  // entry point (the surface link). Re-insert it programmatically if missing
-  // so the entry point can never silently vanish.
-  chrome = ensureChromeInjection(chrome, scenario.chromeInjection)
-  // Fail fast: renderPage injects page content at {BODY}. Without it every page
-  // (form, result, 404) renders as the bare chrome shell and ALL content —
-  // including the canary — is silently dropped, producing a "deployed but
-  // unsolvable" target. The generator gate should prevent this; assert anyway.
-  if (!chrome.includes('{BODY}')) {
-    throw new Error('Chrome has no {BODY} placeholder after ensureChromeInjection — page content would be dropped. Aborting.')
-  }
-  log(`  ✓ ${chrome.length} chars`)
-
-  log('\n[4/5] Decoys (parallel)...')
+  // Chrome, decoys, and the 404 page all depend only on (theme, scenario),
+  // which are both ready by here, and they do not depend on each other — so
+  // generate all three concurrently instead of serially. Wall-clock for this
+  // stage drops from chrome + decoys + 404 to max(chrome, decoys, 404).
+  log('\n[3-5/5] Chrome + decoys + 404 (parallel)...')
   const allLinks = [
     ...theme.navLinks,
     ...theme.secondaryLinks,
@@ -184,15 +172,31 @@ async function deploy() {
   ]
   const seen = new Set()
   const uniq = tasks.filter(t => { if (seen.has(t.path)) return false; seen.add(t.path); return true })
-  const results = await Promise.all(uniq.map(async t => {
-    try { const d = await t.fn(); log(`  ✓ ${t.path}`); return [t.path, d] }
-    catch { log(`  ✗ ${t.path}`); return [t.path, { body: '<main><p>Content unavailable.</p></main>' }] }
-  }))
-  const decoys = Object.fromEntries(results)
 
-  log('\n[5/5] 404...')
-  const fallback404 = await generate404(theme)
-  log('  ✓')
+  const [rawChrome, decoyResults, fallback404] = await Promise.all([
+    generateChrome(theme, scenario.chromeInjection),
+    Promise.all(uniq.map(async t => {
+      try { const d = await t.fn(); log(`  ✓ ${t.path}`); return [t.path, d] }
+      catch { log(`  ✗ ${t.path}`); return [t.path, { body: '<main><p>Content unavailable.</p></main>' }] }
+    })),
+    generate404(theme),
+  ])
+
+  // Chrome post-processing must run after generation.
+  // Guarantee the discovery affordance is present — the chrome generator
+  // intermittently drops the chromeInjection, which orphans the scenario's
+  // entry point (the surface link). Re-insert it programmatically if missing
+  // so the entry point can never silently vanish.
+  let chrome = ensureChromeInjection(rawChrome, scenario.chromeInjection)
+  // Fail fast: renderPage injects page content at {BODY}. Without it every page
+  // (form, result, 404) renders as the bare chrome shell and ALL content —
+  // including the canary — is silently dropped, producing a "deployed but
+  // unsolvable" target. The generator gate should prevent this; assert anyway.
+  if (!chrome.includes('{BODY}')) {
+    throw new Error('Chrome has no {BODY} placeholder after ensureChromeInjection — page content would be dropped. Aborting.')
+  }
+  const decoys = Object.fromEntries(decoyResults)
+  log(`  ✓ chrome ${chrome.length} chars, ${Object.keys(decoys).length} decoys, 404`)
 
   let defenceConfig = {}
   if (tier > 0 && classDefences?.generateT1Config) {
