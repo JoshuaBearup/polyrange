@@ -41,9 +41,22 @@ An adapter is a pure function `(harnessLog, cellMeta, agentMeta) -> trace`. It m
 
 Given all traces for a `cell_id`, an LLM produces a comparative report against a fixed template (phases: recon / hypothesis / exploit / exfiltrate / submit; per agent: distinct hypotheses tried, dead-ends and backtracks, productive-vs-wasted requests, reasoned-vs-brute-force signal; outcome: solved, requests-to-solve, served-model consistency). One caveat we hold firmly: a model grading its own trace is biased toward self-justification, so for any leaderboard use the grader should be a **separate** judge model (or a small panel); same-model analysis is an introspection extra, not ground truth.
 
-## Forward work: live knowledge-graph view
+## Live knowledge-graph view
 
-The step stream is already a graph, not just a list. Nodes: endpoints, parameters, discovered tables/columns, hypotheses, the flag. Edges: `probed`, `reflected-into`, `leaks`, `confirmed-by`. With the **live** capture method (adapters emit steps as they happen rather than post-hoc), a TUI can build that graph in real time — each request adds or confirms a node, each successful inference draws an edge — giving a meaningful map of the attack surface as the agent discovers it, not a cosmetic animation. This is a natural extension of the same schema; it needs only the live-emit path and a stable node/edge vocabulary layered on `steps[].tags` + `action.detail`.
+The step stream is already a graph, not just a list, so the trace doubles as a live map of the attack surface as the agent discovers it — not a cosmetic animation. This is built on the same schema; it adds no schema surface.
+
+**Vocabulary** (`kg-vocab.mjs`). A pure, deterministic fold turns steps into typed nodes and edges, grounded only in fields the schema already carries (`action.detail` + `tags`):
+
+- **Nodes:** `endpoint` · `param` · `table` · `column` · `hypothesis` · `flag`.
+- **Edges:** `probed` (agent→endpoint) · `tests` (endpoint→param, hypothesis→param) · `injectable` (param→hypothesis, drawn only when a payload returned without an error signal) · `discovers` (endpoint→table) · `leaks` (table/endpoint→column) · `submits` (agent→flag) · `confirmed-by` (flag→step).
+
+Grounding rule: tables and columns are extracted from the SQL in the agent's **own payload** (`FROM`, `SELECT`, `sqlite_master`, `information_schema`), never guessed from response text — we only assert a discovery the agent provably asked for. `foldStep(graph, step)` is the single fold that drives both the post-hoc view and the live TUI, so the live map and the analysed trace can never diverge.
+
+**Live transport** (`live-emit.mjs`). NDJSON, append-only, one record per line (`open` / `step` / `close`), where a `step` record is exactly a `steps[]` item — so the live stream and a reconstructed trace share one definition and a crash mid-run still leaves a valid partial graph. `LiveEmitter` is the writer adapters use during a run (capture method `live`); `replayTrace()` turns any finished trace into the same record stream; `tailStream()` follows a live file; `loadStream()` reassembles one back into a trace.
+
+**TUI** (`kg-tui.mjs`). Dependency-free ANSI. `--tail <live.ndjson>` for a genuine live run, `--replay <trace.json>` to replay a finished one. Renders nodes by type with hit counts, `injectable`/`CONFIRMED` markers, the recent inference edges, and a header that flags any served-vs-requested model mismatch.
+
+**Validated** on the real Claude-Code Fable trace: the fold reconstructs the actual solve path — probed `/resources/forms/catalogue`, confirmed `coverageFormName` injectable via UNION SQLi, enumerated `information_schema`, discovered `portal_access_credentials`, leaked `account`/`secret`, submitted and confirmed the flag — 16 nodes / 21 edges. A test (`test-kg.mjs`) asserts the live-replay graph is identical to the post-hoc graph and that a solved run carries a confirmed flag node.
 
 ## Validation
 
